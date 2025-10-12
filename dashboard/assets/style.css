@@ -1,0 +1,17 @@
+/*
+style.css
+---------
+Custom CSS stylesheet for the GeoVision Dashboard.
+*/
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+h1, h2, h3 {
+    color: #0056b3;
+}
+
+.sidebar .sidebar-content {
+    background-color: #f1f3f5;
+}
