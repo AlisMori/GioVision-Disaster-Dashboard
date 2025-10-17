@@ -4,6 +4,66 @@
     {
       "type": "Feature",
       "bbox": [
+        -165.7321,
+        53.5757,
+        -165.7321,
+        53.5757
+      ],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -165.7321,
+          53.5757
+        ]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 1505691,
+        "episodeid": 1666704,
+        "eventname": "",
+        "glide": "",
+        "name": "Earthquake in United States",
+        "description": "Earthquake in United States",
+        "htmldescription": "Green M 5.1 Earthquake in United States at: 17 Oct 2025 15:48:48.",
+        "icon": "https://www.gdacs.org/images/gdacs_icons/maps/Green/EQ.png",
+        "iconoverall": "https://www.gdacs.org/images/gdacs_icons/maps/Green/EQ.png",
+        "url": {
+          "geometry": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=EQ&eventid=1505691&episodeid=1666704",
+          "report": "https://www.gdacs.org/report.aspx?eventid=1505691&episodeid=1666704&eventtype=EQ",
+          "details": "https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=EQ&eventid=1505691"
+        },
+        "alertlevel": "Green",
+        "alertscore": 1,
+        "episodealertlevel": "Green",
+        "episodealertscore": 0.0,
+        "istemporary": "false",
+        "iscurrent": "true",
+        "country": "United States",
+        "fromdate": "2025-10-17T15:48:48",
+        "todate": "2025-10-17T15:48:48",
+        "datemodified": "2025-10-17T16:08:22",
+        "iso3": "USA",
+        "source": "NEIC",
+        "sourceid": "",
+        "polygonlabel": "Centroid",
+        "Class": "Point_Centroid",
+        "affectedcountries": [
+          {
+            "iso2": "US",
+            "iso3": "USA",
+            "countryname": "United States"
+          }
+        ],
+        "severitydata": {
+          "severity": 5.1,
+          "severitytext": "Magnitude 5.1M, Depth:75.97km",
+          "severityunit": "M"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "bbox": [
         72.7604,
         36.7821,
         72.7604,
@@ -6155,66 +6215,6 @@
     {
       "type": "Feature",
       "bbox": [
-        -174.6454,
-        -19.092,
-        -174.6454,
-        -19.092
-      ],
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -174.6454,
-          -19.092
-        ]
-      },
-      "properties": {
-        "eventtype": "EQ",
-        "eventid": 1505157,
-        "episodeid": 1666100,
-        "eventname": "",
-        "glide": "",
-        "name": "Earthquake in Tonga",
-        "description": "Earthquake in Tonga",
-        "htmldescription": "Green M 4.6 Earthquake in Tonga at: 13 Oct 2025 16:40:22.",
-        "icon": "https://www.gdacs.org/images/gdacs_icons/maps/Green/EQ.png",
-        "iconoverall": "https://www.gdacs.org/images/gdacs_icons/maps/Green/EQ.png",
-        "url": {
-          "geometry": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=EQ&eventid=1505157&episodeid=1666100",
-          "report": "https://www.gdacs.org/report.aspx?eventid=1505157&episodeid=1666100&eventtype=EQ",
-          "details": "https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=EQ&eventid=1505157"
-        },
-        "alertlevel": "Green",
-        "alertscore": 1,
-        "episodealertlevel": "Green",
-        "episodealertscore": 0.0,
-        "istemporary": "false",
-        "iscurrent": "true",
-        "country": "Tonga",
-        "fromdate": "2025-10-13T16:40:22",
-        "todate": "2025-10-13T16:40:22",
-        "datemodified": "2025-10-14T16:24:43",
-        "iso3": "TON",
-        "source": "NEIC",
-        "sourceid": "",
-        "polygonlabel": "Centroid",
-        "Class": "Point_Centroid",
-        "affectedcountries": [
-          {
-            "iso2": "TO",
-            "iso3": "TON",
-            "countryname": "Tonga"
-          }
-        ],
-        "severitydata": {
-          "severity": 4.6,
-          "severitytext": "Magnitude 4.6M, Depth:94.206km",
-          "severityunit": "M"
-        }
-      }
-    },
-    {
-      "type": "Feature",
-      "bbox": [
         74.5704,
         36.7158,
         74.5704,
@@ -12095,6 +12095,66 @@
     {
       "type": "Feature",
       "bbox": [
+        126.8412,
+        6.9097,
+        126.8412,
+        6.9097
+      ],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          126.8412,
+          6.9097
+        ]
+      },
+      "properties": {
+        "eventtype": "EQ",
+        "eventid": 1504304,
+        "episodeid": 1665108,
+        "eventname": "",
+        "glide": "EQ-2025-000189-PHL",
+        "name": "Earthquake in Philippines",
+        "description": "Earthquake in Philippines",
+        "htmldescription": "Green M 4.9 Earthquake in Philippines at: 10 Oct 2025 06:32:24.",
+        "icon": "https://www.gdacs.org/images/gdacs_icons/maps/Green/EQ.png",
+        "iconoverall": "https://www.gdacs.org/images/gdacs_icons/maps/Green/EQ.png",
+        "url": {
+          "geometry": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=EQ&eventid=1504304&episodeid=1665108",
+          "report": "https://www.gdacs.org/report.aspx?eventid=1504304&episodeid=1665108&eventtype=EQ",
+          "details": "https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=EQ&eventid=1504304"
+        },
+        "alertlevel": "Green",
+        "alertscore": 1,
+        "episodealertlevel": "Green",
+        "episodealertscore": 0.0,
+        "istemporary": "false",
+        "iscurrent": "false",
+        "country": "Philippines",
+        "fromdate": "2025-10-10T06:32:24",
+        "todate": "2025-10-10T06:32:24",
+        "datemodified": "2025-10-10T08:01:10",
+        "iso3": "PHL",
+        "source": "NEIC",
+        "sourceid": "",
+        "polygonlabel": "Centroid",
+        "Class": "Point_Centroid",
+        "affectedcountries": [
+          {
+            "iso2": "PH",
+            "iso3": "PHL",
+            "countryname": "Philippines"
+          }
+        ],
+        "severitydata": {
+          "severity": 4.9,
+          "severitytext": "Magnitude 4.9M, Depth:64.785km",
+          "severityunit": "M"
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "bbox": [
         -87.8711,
         13.1742,
         -87.8711,
@@ -16868,7 +16928,7 @@
         "country": "",
         "fromdate": "2025-10-03T00:00:00",
         "todate": "2025-10-06T12:00:00",
-        "datemodified": "2025-10-17T15:50:14",
+        "datemodified": "2025-10-17T16:05:18",
         "iso3": "",
         "source": "JTWC",
         "sourceid": "",
@@ -17935,66 +17995,6 @@
         "severitydata": {
           "severity": 6006.0,
           "severitytext": "Green impact for forestfire in 6006 ha",
-          "severityunit": "ha"
-        }
-      }
-    },
-    {
-      "type": "Feature",
-      "bbox": [
-        127.29338221689791,
-        -16.837449761542043,
-        127.29338221689791,
-        -16.837449761542043
-      ],
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          127.29338221689791,
-          -16.837449761542043
-        ]
-      },
-      "properties": {
-        "eventtype": "WF",
-        "eventid": 1025232,
-        "episodeid": 4,
-        "eventname": "",
-        "glide": "",
-        "name": "Forest fires in Australia",
-        "description": "Forest fires in Australia",
-        "htmldescription": "Green Forest fires in Australia from: 04 Oct 2025 to: 06 Oct 2025.",
-        "icon": "https://www.gdacs.org/images/gdacs_icons/maps/Green/WF.png",
-        "iconoverall": "https://www.gdacs.org/images/gdacs_icons/maps/Green/WF.png",
-        "url": {
-          "geometry": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=WF&eventid=1025232&episodeid=4",
-          "report": "https://www.gdacs.org/report.aspx?eventid=1025232&episodeid=4&eventtype=WF",
-          "details": "https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=WF&eventid=1025232"
-        },
-        "alertlevel": "Green",
-        "alertscore": 1,
-        "episodealertlevel": "Green",
-        "episodealertscore": 0.5,
-        "istemporary": "false",
-        "iscurrent": "false",
-        "country": "Australia",
-        "fromdate": "2025-10-04T00:00:00",
-        "todate": "2025-10-06T00:00:00",
-        "datemodified": "2025-10-06T11:02:26",
-        "iso3": "AUS",
-        "source": "GWIS",
-        "sourceid": "",
-        "polygonlabel": "Centroid",
-        "Class": "Point_Centroid",
-        "affectedcountries": [
-          {
-            "iso2": "AU",
-            "iso3": "AUS",
-            "countryname": "Australia"
-          }
-        ],
-        "severitydata": {
-          "severity": 30934.0,
-          "severitytext": "Green impact for forestfire in 30934 ha",
           "severityunit": "ha"
         }
       }

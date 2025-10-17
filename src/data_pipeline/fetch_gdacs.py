@@ -12,30 +12,39 @@ import json
 import os
 import re
 
-"""Remove HTML tags and extra spaces from text."""
+# ----------------------------
+# Utility Functions
+# ----------------------------
+
 def clean_text(text):
+    """Remove HTML tags and extra spaces from text."""
     if not isinstance(text, str):
         return text
     text = re.sub(r"<.*?>", "", text)  # remove HTML tags
     return text.strip()
 
-"""Extract latitude and longitude from geometry JSON."""
-def extract_coords(geom):
-    if pd.isna(geom):
+def extract_coords_from_xml(geom_xml):
+    """Extract latitude and longitude from GDACS geometry_xml field."""
+    if not geom_xml or pd.isna(geom_xml):
         return None, None
     try:
-        data = json.loads(geom)
-        coords = data.get("coordinates", [])
-        if coords and isinstance(coords[0], (int, float)):
-            return coords[1], coords[0]  # lat, lon
-        elif len(coords) > 0 and isinstance(coords[0], list):
-            # handle nested coordinate lists
-            return coords[0][1], coords[0][0]
+        # GDACS sometimes returns XML with <coordinates>...</coordinates> inside
+        geom_str = re.search(r"\{.*\}", geom_xml)
+        if geom_str:
+            data = json.loads(geom_str.group())
+            coords = data.get("coordinates", [])
+            if coords and isinstance(coords[0], (int, float)):
+                return coords[1], coords[0]  # lat, lon
+            elif len(coords) > 0 and isinstance(coords[0], list):
+                return coords[0][1], coords[0][0]
     except Exception:
         pass
     return None, None
 
-"""Fetch and clean GDACS alerts."""
+# ----------------------------
+# Main Function
+# ----------------------------
+
 def fetch_gdacs():
     print("Fetching GDACS data...")
 
@@ -66,11 +75,15 @@ def fetch_gdacs():
             "fromdate": item.findtext("gdacs:fromdate", namespaces=ns),
             "todate": item.findtext("gdacs:todate", namespaces=ns),
             "url": item.findtext("link"),
-            "geometry_json": item.findtext("gdacs:geometry", namespaces=ns)
+            "geometry_xml": item.findtext("gdacs:geometry", namespaces=ns)
         }
         alerts.append(data)
 
     df = pd.DataFrame(alerts)
+
+    # Handle missing geometry
+    if "geometry_xml" not in df.columns:
+        df["geometry_xml"] = None
 
     # Basic cleaning
     df.dropna(subset=["eventtype", "country"], inplace=True)
@@ -78,7 +91,7 @@ def fetch_gdacs():
     df["todate"] = pd.to_datetime(df["todate"], errors="coerce")
     df["alertscore"] = pd.to_numeric(df["alertscore"], errors="coerce")
 
-    # Rename columns for clarity
+    # Rename columns
     df.rename(columns={
         "eventtype": "Disaster Type",
         "eventname": "Event Name",
@@ -94,28 +107,29 @@ def fetch_gdacs():
     df["description"] = df["description"].apply(clean_text)
     df["Event Name"] = df["Event Name"].apply(clean_text)
 
-    # Extract latitude and longitude
-    df["Latitude"], df["Longitude"] = zip(*df["geometry_json"].apply(extract_coords))
+    # Extract lat/lon from geometry_xml
+    df["Latitude"], df["Longitude"] = zip(*df["geometry_xml"].apply(extract_coords_from_xml))
 
-    # Add Days Active column
+    # Add Days Active
     df["Days Active"] = (df["End Date"] - df["Start Date"]).dt.days
 
-    # Keep only useful columns
+    # Keep relevant columns
     df = df[[
         "Disaster Type", "Event Name", "Country", "iso3",
         "Alert Level", "Alert Score", "Start Date", "End Date",
         "Days Active", "title", "description", "Latitude", "Longitude", "url"
     ]]
 
-    # Save cleaned data
-    os.makedirs("data", exist_ok=True)
-    csv_path = "data/gdacs_cleaned.csv"
-    df.to_csv(csv_path, index=False)
 
-    print(f"Fetched {len(df)} alerts and saved to {csv_path}")
+    # Save cleaned data
+    os.makedirs("processed_data", exist_ok=True)
+    processed_csv_path = "data/gdacs_cleaned.csv"
+    df.to_csv(processed_csv_path, index=False)
+
+    print(f"Fetched {len(df)} alerts and saved to {processed_csv_path}")
     return df
 
-#just to make sure it's the right dataset
+# Uncomment to test independently
 if __name__ == "__main__":
-    df = fetch_gdacs()
-    print(df.head())
+   df = fetch_gdacs()
+   print(df.head())
