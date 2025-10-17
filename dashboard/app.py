@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path:
 
 
 import streamlit as st
-from dashboard.components import overview_tab, trends_tab, comparisons_tab
+from dashboard.components import overview_tab, trends_tab, comparisons_tab, alerts_tab
 from src.utils import style_config
 
 # ----------------------------
@@ -58,7 +58,7 @@ st.caption("ICT305 – Data Visualisation and Simulation | Murdoch University, 2
 st.sidebar.header("Navigation")
 page = st.sidebar.radio(
     "Go to",
-    ["Overview", "Trends", "Comparisons"]
+    ["Overview", "Trends", "Comparisons", "Alerts"]
 )
 
 # ----------------------------
@@ -70,6 +70,8 @@ elif page == "Trends":
     trends_tab.render()
 elif page == "Comparisons":
     comparisons_tab.render()
+elif page == "Alerts":
+    alerts_tab.render()
 else:
     st.warning("This section is under construction.")
 
