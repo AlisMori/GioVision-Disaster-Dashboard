@@ -1,0 +1,494 @@
+feature__id,eventtype,alertlevel,country,eventname,glide,ring_index,vertex_index,x,y
+,EQ,Green,Pakistan,,,0,0,72.7604,36.7821
+,EQ,Green,Southeast Of Easter Island,,,0,0,-91.1454,-41.2588
+,EQ,Green,South Of Fiji Islands,,,0,0,-177.0642,-25.6613
+,EQ,Green,Philippines,,,0,0,127.2002,7.1167
+,EQ,Green,Russia,,,0,0,157.2801,50.1048
+,EQ,Green,Philippines,,,0,0,120.5547,18.5873
+,EQ,Green,Philippines,,,0,0,120.6163,18.6819
+,EQ,Green,Russian Federation,,,0,0,159.6399,53.228
+,EQ,Green,Indonesia,,,0,0,139.0327,-2.2996
+,EQ,Green,Russian Federation,,,0,0,159.8579,53.181
+,EQ,Green,Chile,,,0,0,-71.4078,-30.7151
+,EQ,Green,Honduras,,,0,0,-85.25,17.0517
+,EQ,Green,Philippines,,,0,0,126.2206,9.7339
+,EQ,Green,Afghanistan,,,0,0,70.8308,34.3827
+,EQ,Green,South Of Fiji Islands,,,0,0,178.8255,-23.3473
+,EQ,Green,Philippines,,,0,0,126.1093,9.7561
+,EQ,Green,Philippines,,,0,0,127.1758,6.8254
+,EQ,Green,Myanmar,,,0,0,92.5745,13.3525
+,EQ,Green,Off East Coast Of Kamchatka,,,0,0,159.9278,51.1794
+,EQ,Green,Russia,,,0,0,157.2392,50.0906
+,EQ,Green,Russia,,,0,0,158.6438,51.9022
+,EQ,Green,Indonesia,,,0,0,139.0855,-2.1142
+,EQ,Green,Indonesia,,,0,0,139.1134,-2.2378
+,EQ,Green,Indonesia,,,0,0,138.8946,-2.1197
+,FL,Green,"Guatemala, Spain",,,0,0,-1.9838889,43.3224219
+,EQ,Green,South Of Kermadec Islands,,,0,0,-179.1204,-34.3728
+,EQ,Green,Philippines,,,0,0,125.9547,5.4138
+,EQ,Green,Kuril Islands,,,0,0,156.5566,49.0164
+,EQ,Green,Myanmar,,,0,0,95.5076,24.8187
+,EQ,Green,Indonesia,,,0,0,138.9382,-2.1676
+,EQ,Green,West Chile Rise,,,0,0,-81.8754,-44.2232
+,EQ,Green,Drake Passage,,,0,0,-61.994,-60.194
+,EQ,Green,Drake Passage,,,0,0,-62.7045,-58.7366
+,EQ,Green,Drake Passage,,,0,0,-61.6217,-59.9066
+,FL,Green,Italy,,,0,0,9.0975894,40.0615029
+,FL,Green,Malaysia,,,0,0,101.9085845,4.3242506
+,EQ,Green,Philippines,,,0,0,125.3035,5.1075
+,TC,Green,,LORENZO-25,,0,0,-42.5,23.1
+,EQ,Green,Philippines,,,0,0,120.0164,15.5347
+,EQ,Green,Chile,,,0,0,-70.1129,-27.0873
+,EQ,Green,South Of Kermadec Islands,,,0,0,-178.768,-34.0533
+,FL,Green,Venezuela,,,0,0,-61.8331903,7.3473611
+,FL,Green,Democratic Republic of Congo,,,0,0,28.1674007633668,-3.29689585
+,EQ,Green,Chile,,,0,0,-71.559,-30.7205
+,EQ,Green,"W. Caroline Islands, Micronesia",,,0,0,141.5284,7.2551
+,EQ,Green,Venezuela,,,0,0,-70.875,9.9352
+,EQ,Green,Philippines,,,0,0,127.1802,7.1768
+,EQ,Green,Off East Coast Of Kamchatka,,,0,0,159.8309,51.5274
+,FL,Green,New Zealand,,,0,0,174.7786485,-38.4303311
+,FL,Green,Indonesia,,,0,0,110.0044145,-7.3032412
+,FL,Green,United States,,,0,0,-75.401415,39.0599109
+,DR,Green,Canada,Canada-2025,,0,0,-111.601,54.66
+,DR,Green,"Bhutan, China, India, Nepal",Himalaya-2025,DR-2025-000125-NPL,0,0,88.368,27.507
+,DR,Orange,"China, Kazakhstan, Mongolia, Russia","Mongolia, China-2025",DR-2025-000180-CHN,0,0,95.124,48.815
+,DR,Green,"Belgium, Germany, Finland, France, Luxembourg, Netherlands, Norway, Sweden, ",Europe-2023,DR-2023-000138-AUT,0,0,6.912,52.869
+,DR,Orange,"Bolivia, Brazil, Peru",South America-2023,DR-2023-000204-BRA,0,0,-56.55,-8.137
+,DR,Green,Madagascar,Madagascar-2023,DR-2023-000270-MDG,0,0,48.784,-15.449
+,DR,Orange,"Mexico, United States","Mexico, Western USA-2024",DR-2024-000076-BLZ,0,0,-110.305,33.465
+,DR,Green,"Burkina Faso, Benin, Cote d'Ivoire, Cameroon, Ghana, Guinea, Liberia, Nigeria, Togo",Central-Western Africa-2024,,0,0,6.577,7.763
+,DR,Orange,"Austria, Bosnia & Herzegovina, Bulgaria, Georgia, Greece, Croatia, Hungary, Moldova, Montenegro, The Republic of North Macedonia, Romania, Serbia, Russia, Slovenia, Slovakia, Türkiye, Ukraine",South-Eastern Europe and Black Sea-2024,OT-2022-000172-RUS,0,0,27.598,44.955
+,DR,Orange,"Armenia, Azerbaijan, China, Islamic Republic of Iran, Kyrgyzstan, Kazakhstan, Russia, Syria, Tajikistan, Turkmenistan, Türkiye, Uzbekistan","Middle East, Central Asia-2024",DR-2024-000232-EGY,0,0,61.046,42.044
+,DR,Orange,"Ethiopia, Somalia","Somalia, Ethiopia-2025",DR-2025-000148-ETH,0,0,43.398,1.64
+,DR,Green,Australia,Australia-2025,,0,0,138.556,-33.654
+,DR,Green,"The Bahamas, Costa Rica, Cuba, Mexico, Nicaragua",Central America-2025,,0,0,-92.748,18.369
+,DR,Green,United States,Northwestern USA-2025,,0,0,-117.191,46.491
+,DR,Green,"Democratic Republic of Congo, Central African Republic, Sudan, South Sudan",Central-Eastern Africa-2025,,0,0,28.084,6.941
+,DR,Green,"Spain, Portugal",Northwestern Iberian Peninsula-2025,,0,0,-7.575,42.602
+,DR,Green,Chile,Chile-2025,,0,0,-72.862,-38.93
+,DR,Green,United States,Midwest (USA)-2025,,0,0,-92.505,38.294
+,EQ,Green,"Southeast Of Honshu, Japan",,,0,0,138.2272,30.3786
+,EQ,Green,Timor-Leste,,,0,0,125.9744,-9.1429
+,VO,Orange,Indonesia,Lewotobi,VO-2025-000194-IDN,0,0,122.775,-8.542
+,EQ,Green,Papua New Guinea,,,0,0,146.5762,-6.2895
+,EQ,Green,Solomon Is.,,,0,0,166.4903,-12.0308
+,EQ,Green,Papua New Guinea,,,0,0,146.9234,-6.8131
+,EQ,Green,Papua New Guinea,,,0,0,154.0187,-3.7244
+,EQ,Green,Philippines,,,0,0,127.2908,7.5247
+,EQ,Green,Nepal,,,0,0,81.2298,29.5493
+,EQ,Green,Philippines,,,0,0,127.0007,7.358
+,EQ,Green,Philippines,,,0,0,127.308,7.4818
+,EQ,Green,Chile,,,0,0,-69.0889,-20.202
+,EQ,Green,Revilla Gigedo Islands Region,,,0,0,-109.4064,19.9438
+,EQ,Green,Vanuatu,,,0,0,166.5776,-12.7502
+,TC,Green,Japan,NAKRI-25,,0,0,158.0,35.4
+,EQ,Green,Philippines,,,0,0,126.9259,5.7775
+,EQ,Green,Papua New Guinea,,,0,0,153.0547,-4.5447
+,VO,Green,Indonesia,Marapi,,0,0,100.474,-0.38
+,EQ,Green,Chile,,,0,0,-68.64,-21.88
+,EQ,Green,Russia,,,0,0,160.5314,53.6643
+,EQ,Green,Japan,,,0,0,139.5058,39.605
+,EQ,Green,China,,,0,0,81.416,41.6443
+,EQ,Green,Philippines,,,0,0,126.7836,7.4155
+,EQ,Green,Philippines,,,0,0,127.2027,7.3466
+,FL,Green,Colombia,,,0,0,-73.8525627,7.0673313
+,FL,Green,Spain,,,0,0,0.52702774674474,40.6525574
+,FL,Green,Guatemala,,,0,0,-90.4757481,14.225024
+,EQ,Green,Argentina,,,0,0,-69.4216,-32.0499
+,EQ,Green,Russia,,,0,0,156.9695,50.6405
+,EQ,Green,Russia,,,0,0,156.6747,50.0975
+,EQ,Green,Tonga,,,0,0,-174.6454,-19.092
+,EQ,Green,Pakistan,,,0,0,74.5704,36.7158
+,EQ,Green,Philippines,,,0,0,126.988,7.1111
+,EQ,Green,Micronesia,,,0,0,141.6049,7.2482
+,EQ,Green,Solomon Islands,,,0,0,161.2627,-10.3071
+,EQ,Green,Vanuatu,,,0,0,169.7044,-21.0283
+,EQ,Green,"East Of North Island, N.Z.",,,0,0,-179.3476,-35.6075
+,EQ,Green,Indonesia,,,0,0,114.1833,-7.2291
+,EQ,Green,Myanmar,,,0,0,94.5236,22.4329
+,EQ,Green,Japan,,,0,0,142.5944,38.5931
+,EQ,Green,South Sandwich Islands Region,,,0,0,-25.4247,-58.9889
+,EQ,Green,"East Of North Island, N.Z.",,,0,0,-179.3657,-35.5109
+,EQ,Green,Chile,,,0,0,-71.6865,-30.6574
+,EQ,Green,Russia,,,0,0,154.8053,48.9057
+,FL,Green,Mexico,,FL-2025-000193-MEX,0,0,-105.220306,20.6407176
+,EQ,Green,Indonesia,,,0,0,122.6421,-4.7143
+,EQ,Green,Reykjanes Ridge,,,0,0,-33.8459,57.1359
+,EQ,Green,Reykjanes Ridge,,,0,0,-33.5127,56.9192
+,EQ,Green,Russia,,,0,0,159.0215,52.5385
+,EQ,Green,Philippines,,,0,0,127.4028,7.2708
+,EQ,Orange,Philippines,,EQ-2025-000192-PHL,0,0,123.9375,10.9457
+,EQ,Green,Argentina,,,0,0,-70.1041,-32.6039
+,EQ,Green,Indonesia,,,0,0,126.9549,1.5366
+,EQ,Green,Russia,,,0,0,161.4288,53.0475
+,EQ,Green,China,,,0,0,103.1367,30.4852
+,EQ,Green,Greenland Sea,,,0,0,6.9195,75.9176
+,EQ,Green,Indonesia,,,0,0,139.3097,-2.7344
+,TC,Green,Mexico,RAYMOND-25,,0,0,-110.0,22.9
+,EQ,Green,Mexico,,,0,0,-94.3667,17.4321
+,EQ,Green,Philippines,,,0,0,127.0336,7.2427
+,EQ,Green,South Of Mariana Islands,,,0,0,144.4819,12.3055
+,EQ,Green,Off East Coast Of Kamchatka,,,0,0,160.7335,51.7293
+,EQ,Green,Ethiopia,,EQ-2025-000191-ETH,0,0,39.8083,13.8263
+,TC,Green,"Antigua and Barbuda, Montserrat, Anguilla, Virgin Islands  British, Virgin Islands  U.S., Saint Kitts and Nevis, Guadeloupe, Dominica, Martinique",JERRY-25,,0,0,-63.6,27.6
+,EQ,Green,Philippines,,,0,0,126.9787,7.6918
+,EQ,Green,Ethiopia,,EQ-2025-000191-ETH,0,0,39.7476,13.9819
+,EQ,Green,Drake Passage,,,0,0,-61.0859,-60.2664
+,EQ,Orange,Ethiopia,,EQ-2025-000191-ETH,0,0,39.8663,13.7902
+,EQ,Green,Ethiopia,,EQ-2025-000191-ETH,0,0,39.946,13.8185
+,EQ,Green,Papua New Guinea,,,0,0,149.9302,-6.1703
+,EQ,Green,Kermadec Islands Region,,,0,0,-178.0277,-31.5685
+,EQ,Green,Pakistan,,,0,0,71.0598,31.1252
+,EQ,Green,Philippines,,,0,0,126.3963,8.92
+,EQ,Green,Philippines,,,0,0,125.2408,10.5951
+,EQ,Green,"Andreanof Islands, Aleutian Is.",,,0,0,-179.8482,51.0073
+,EQ,Green,South Sandwich Islands Region,,,0,0,-26.5568,-56.3773
+,EQ,Green,Philippines,,,0,0,127.0286,6.8025
+,EQ,Green,Russia,,,0,0,156.6974,50.3263
+,EQ,Green,Philippines,,,0,0,126.798,7.2713
+,EQ,Green,Philippines,,,0,0,120.44,15.2385
+,EQ,Green,Papua New Guinea,,,0,0,148.4716,-3.1483
+,EQ,Green,South Sandwich Islands Region,,,0,0,-26.4921,-56.1829
+,EQ,Green,"Mindanao, Philippines",,,0,0,126.8701,7.1159
+,EQ,Green,"Southeast Of Honshu, Japan",,,0,0,138.4539,30.3456
+,EQ,Green,China,,,0,0,103.4597,27.1032
+,EQ,Green,Russian Federation,,,0,0,159.7815,53.2522
+,EQ,Green,Philippines,,,0,0,126.9131,7.0043
+,FL,Green,France,,,0,0,-61.3476233,16.3316709
+,EQ,Green,Drake Passage,,,0,0,-61.8182,-60.2488
+,EQ,Green,Papua New Guinea,,,0,0,145.723,-6.3108
+,EQ,Green,Drake Passage,,,0,0,-62.3905,-60.3594
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.0559,7.4016
+,EQ,Green,Drake Passage,,,0,0,-62.5368,-60.1049
+,EQ,Green,Drake Passage,,,0,0,-62.4775,-60.0861
+,EQ,Green,Drake Passage,,,0,0,-62.3553,-60.0413
+,EQ,Green,Drake Passage,,,0,0,-61.5268,-60.031
+,EQ,Green,Drake Passage,,,0,0,-62.6546,-60.0289
+,TC,Green,,KAREN-25,,0,0,-30.2,47.5
+,TC,Green,Mexico,PRISCILLA-25,,0,0,-115.4,26.3
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.2601,7.1762
+,EQ,Green,Chile,,,0,0,-61.799,-60.1958
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.9662,6.9304
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.298,7.2319
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.0178,7.0835
+,EQ,Green,Philippines,,,0,0,122.2656,17.5045
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.7177,7.4209
+,EQ,Green,Indonesia,,,0,0,126.6231,3.7989
+,EQ,Green,China,,,0,0,103.6442,27.1386
+,EQ,Green,Greenland,,,0,0,-37.7715,65.8514
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.1888,7.3513
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.0663,7.4134
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.2314,7.0649
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.1347,7.3418
+,EQ,Green,South Sandwich Islands Region,,,0,0,-29.0845,-55.2238
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.9585,7.2841
+,EQ,Green,"W. Caroline Islands, Micronesia",,,0,0,141.6218,11.6386
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.15,7.2528
+,EQ,Green,Russia,,,0,0,156.5204,50.3802
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.7553,7.1716
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.7548,7.1418
+,EQ,Green,Indonesia,,,0,0,129.544,-6.9375
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.8738,7.1952
+,EQ,Green,Micronesia,,,0,0,141.5675,11.4553
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.89,6.9978
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.0224,7.1851
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.7558,7.1969
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.9429,7.0924
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.849,7.009
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.0366,7.1656
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.8412,6.9097
+,EQ,Green,El Salvador,,,0,0,-87.8711,13.1742
+,EQ,Green,El Salvador,,,0,0,-87.8711,13.1742
+,EQ,Green,Indonesia,,,0,0,133.9173,-5.0896
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.9866,7.1838
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.9228,6.8213
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,127.0765,6.8017
+,EQ,Green,Papua New Guinea,,,0,0,148.9217,-3.2018
+,EQ,Green,United States,,,0,0,-160.0759,54.5371
+,EQ,Green,Indonesia,,,0,0,102.0061,-2.1054
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.7912,7.2695
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.8218,7.0638
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.8338,7.127
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.7917,7.1171
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.9212,6.914
+,EQ,Green,"Southwest Of Sumatera, Indonesia",,,0,0,102.5355,-7.3482
+,EQ,Green,Bismarck Sea,,,0,0,148.5616,-3.3261
+,EQ,Green,South Of Fiji Islands,,,0,0,-177.0863,-24.0734
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.7969,6.9947
+,EQ,Green,Papua New Guinea,,,0,0,147.9689,-3.0262
+,EQ,Green,Philippines,,EQ-2025-000189-PHL,0,0,126.8879,7.1014
+,EQ,Orange,Philippines,,EQ-2025-000189-PHL,0,0,126.7545,7.2649
+,EQ,Green,Myanmar,,,0,0,93.7187,18.5183
+,EQ,Green,Papua New Guinea,,,0,0,142.0279,-3.7446
+,EQ,Green,Vanuatu,,,0,0,167.4705,-15.3721
+,TC,Green,Japan,HALONG-25,,0,0,149.9,34.1
+,EQ,Green,Russia,,,0,0,158.4334,51.5117
+,EQ,Green,Southwest Of Africa,,,0,0,14.3796,-52.2529
+,TC,Green,,OCTAVE-25,,0,0,-110.5,17.7
+,EQ,Green,Southwest Of Africa,,,0,0,14.4213,-52.0662
+,EQ,Green,Russian Federation,,,0,0,158.212,51.686
+,EQ,Green,South Of Kermadec Islands,,,0,0,-178.7133,-33.9818
+,FL,Green,Georgia,,,0,0,46.2738235,41.8242785
+,EQ,Orange,China,,EQ-2025-000188-CHN,0,0,99.92,30.9113
+,FL,Green,Romania,,,0,0,26.2449077,44.5017074
+,FL,Orange,India,,FL-2025-000171-IND,0,0,76.6203330691771,31.3677822
+,FL,Green,Bulgaria,,,0,0,27.8100651,42.703969
+,FL,Green,China,,,0,0,106.8507445,22.3463347
+,EQ,Green,Vanuatu,,,0,0,168.7851,-19.3493
+,EQ,Green,Türkiye,,,0,0,29.0904,39.2473
+,EQ,Green,United States,,,0,0,-175.2508,51.5537
+,EQ,Green,Russian Federation,,,0,0,159.7713,53.1995
+,EQ,Green,Russia,,,0,0,159.1202,52.812
+,EQ,Green,Mexico,,,0,0,-92.068,13.8993
+,EQ,Green,Mexico,,,0,0,-92.1134,13.7168
+,FL,Green,Chad,,,0,0,17.5841771273318,8.72751
+,EQ,Green,Russian Federation,,,0,0,157.2017,51.0538
+,EQ,Green,Indonesia,,,0,0,102.2168,-4.2534
+,EQ,Green,Indonesia,,,0,0,128.0869,-0.6328
+,EQ,Green,South Sandwich Islands Region,,,0,0,-24.1577,-57.8245
+,FL,Orange,Nigeria,,,0,0,12.3881887,9.5129772
+,FL,Green,Philippines,,,0,0,124.9967013,5.8610055
+,EQ,Green,Russia,,,0,0,160.8766,53.3959
+,EQ,Green,Taiwan,,,0,0,121.5584,23.9637
+,EQ,Green,Russia,,,0,0,158.9869,52.4461
+,EQ,Green,Peru,,,0,0,-75.4684,-15.9772
+,EQ,Green,Vanuatu,,,0,0,168.1561,-15.643
+,EQ,Green,Japan,,,0,0,129.3903,29.2431
+,FL,Green,Senegal,,,0,0,-12.4568066,14.9049666
+,EQ,Green,Afghanistan,,,0,0,69.6408,37.3857
+,EQ,Green,Papua New Guinea,,,0,0,146.767,-6.7837
+,EQ,Green,Saudi Arabia,,,0,0,40.1748,17.7926
+,EQ,Green,Philippines,,,0,0,126.5212,10.1681
+,EQ,Green,Philippines,,,0,0,126.422,5.4976
+,EQ,Green,Russia,,,0,0,149.5408,45.1659
+,EQ,Green,"Off East Coast Of Honshu, Japan",,,0,0,144.1112,37.6701
+,EQ,Green,"Off East Coast Of Honshu, Japan",,,0,0,144.1149,37.8333
+,FL,Green,Panama,,,0,0,-82.3853832001199,8.74074955
+,FL,Green,Vietnam,,,0,0,106.405784844222,22.2808894806321
+,FL,Green,El Salvador,,,0,0,-89.17374,13.7126863
+,EQ,Green,Japan,,,0,0,141.3033,37.5675
+,EQ,Green,Philippines,,,0,0,122.1833,9.9813
+,EQ,Green,Indonesia,,,0,0,127.3639,3.3406
+,EQ,Green,Russia,,,0,0,159.4889,51.578
+,EQ,Green,"Off East Coast Of Honshu, Japan",,,0,0,144.0981,37.8565
+,EQ,Green,Russia,,,0,0,160.187,52.4433
+,EQ,Green,Papua New Guinea,,,0,0,148.4676,-8.0904
+,EQ,Green,Mexico,,,0,0,-116.076,31.325
+,EQ,Green,"Off East Coast Of Honshu, Japan",,,0,0,144.2022,37.7601
+,EQ,Green,"Off East Coast Of Honshu, Japan",,,0,0,144.044,37.7685
+,FL,Orange,Nepal,,FL-2025-000184-NPL,0,0,87.924784,26.9399704
+,EQ,Green,South Of Fiji Islands,,,0,0,175.5584,-21.1408
+,TC,Green,,SHAKHTI-25,,0,0,60.2,19.7
+,EQ,Green,Italy,,,0,0,13.3497,43.9869
+,EQ,Green,Off W Coast Of Northern Sumatera,,,0,0,92.8019,0.8991
+,EQ,Green,Russia,,,0,0,160.7879,53.2334
+,EQ,Green,Indonesia,,,0,0,126.2338,0.9262
+,EQ,Green,South Of Kermadec Islands,,,0,0,-175.0337,-32.3341
+,EQ,Green,Northern Mid-Atlantic Ridge,,,0,0,-44.6288,13.3105
+,EQ,Green,Mariana Islands Region,,,0,0,147.1894,14.8923
+,FL,Green,Bhutan,,,0,0,89.2357556,27.3596658
+,FL,Green,Malaysia,,,0,0,103.435242762347,1.62209419622322
+,FL,Green,Norway,,,0,0,10.1531702,59.5591252
+,WF,Green,Australia,,,0,0,126.67606682738277,-14.974962844935886
+,WF,Green,Brazil,,,0,0,-51.043922565731705,-16.06732509769797
+,WF,Green,Australia,,,0,0,130.4376864651875,-18.900737637433988
+,WF,Green,Australia,,,0,0,126.21806854841111,-21.010714242110364
+,WF,Green,Australia,,,0,0,145.14696698265743,-15.76318955092503
+,WF,Green,Australia,,,0,0,127.36641390967213,-18.76044455737953
+,WF,Green,Brazil,,,0,0,-53.351427875806614,-18.21345326186857
+,WF,Green,Botswana,,,0,0,21.599898887525157,-24.07958165066348
+,WF,Green,Australia,,,0,0,127.29338221689791,-16.837449761542043
+,WF,Green,Australia,,,0,0,147.72522911168775,-25.562832856640238
+,WF,Green,Australia,,,0,0,131.75785639814038,-14.886321382319267
+,WF,Green,Brazil,,,0,0,-57.59800962069625,-17.915292869670523
+,WF,Green,Brazil,,,0,0,-42.81127937178943,-6.682055343800126
+,WF,Green,Australia,,,0,0,127.74428549115572,-17.33401716400861
+,WF,Green,Australia,,,0,0,127.5086160312843,-17.231706486024372
+,WF,Green,Australia,,,0,0,131.5865292778062,-23.1620995264436
+,WF,Green,Australia,,,0,0,130.1950895433396,-15.705339700638497
+,WF,Green,Australia,,,0,0,129.51035161723144,-18.582671237597328
+,WF,Green,Australia,,,0,0,129.67184829853272,-18.090644012738863
+,WF,Green,Australia,,,0,0,129.2431399157354,-17.682609938513767
+,WF,Green,Australia,,,0,0,129.26696867214588,-18.63170988723906
+,WF,Green,Australia,,,0,0,129.3348633948208,-18.939033093463827
+,WF,Green,Australia,,,0,0,125.7699170262246,-22.197931964433817
+,WF,Green,Australia,,,0,0,142.64451605924967,-12.793298905517803
+,WF,Green,Australia,,,0,0,131.61614183167882,-16.02885778592639
+,WF,Green,Australia,,,0,0,125.90658251248142,-15.100138948040021
+,WF,Green,Brazil,,,0,0,-56.80898178061328,-15.245507721085108
+,WF,Green,Australia,,,0,0,133.47669954532876,-18.888924350359574
+,WF,Green,Brazil,,,0,0,-46.87763217704014,-14.949812242780558
+,WF,Green,Australia,,,0,0,131.59555667808252,-17.902487753142122
+,WF,Green,Australia,,,0,0,127.56654945846738,-16.734466910710957
+,WF,Green,Australia,,,0,0,126.6839261750132,-15.07210964699832
+,WF,Green,Brazil,,,0,0,-48.227386107321784,-14.653998444902761
+,WF,Green,Australia,,,0,0,147.91993050929804,-25.63844568552572
+,WF,Green,Brazil,,,0,0,-50.90125618863613,-16.02313870098765
+,WF,Green,Brazil,,,0,0,-47.826815555757086,-13.32472306535991
+,WF,Green,Brazil,,,0,0,-47.86919055324094,-13.15119455070854
+,WF,Green,Australia,,,0,0,127.72247979604553,-16.912648901544678
+,EQ,Green,Indonesia,,,0,0,127.0115,2.1979
+,EQ,Green,Kyrgyzstan,,,0,0,71.2576,42.1574
+,EQ,Green,South Of Fiji Islands,,,0,0,179.0068,-23.4216
+,EQ,Green,Papua New Guinea,,,0,0,151.3282,-3.8968
+,EQ,Green,Viet Nam,,,0,0,108.0503,14.8343
+,TC,Red,"China, Viet Nam, Philippines",MATMO-25,TC-2025-000183-VNM,0,0,108.5,21.9
+,EQ,Green,Philippines,,,0,0,125.0136,4.5998
+,EQ,Green,Russia,,,0,0,159.5384,51.5577
+,EQ,Green,Russia,,,0,0,159.4934,51.3924
+,EQ,Green,Russia,,,0,0,159.4822,51.3661
+,EQ,Green,"Kermadec Islands, New Zealand",,,0,0,-178.0315,-30.5664
+,EQ,Green,Svalbard and Jan Mayen,,,0,0,-7.8291,71.1222
+,EQ,Green,Afghanistan,,,0,0,66.2694,30.3314
+,EQ,Green,Russian Federation,,,0,0,159.7786,53.3029
+,EQ,Green,Svalbard and Jan Mayen,,,0,0,-7.9274,71.2917
+,EQ,Green,Canada,,,0,0,-140.546,61.3661
+,EQ,Green,Indonesia,,,0,0,125.2194,-0.3506
+,EQ,Green,"Talaud Islands, Indonesia",,,0,0,127.9895,3.6309
+,EQ,Green,Svalbard and Jan Mayen,,,0,0,-7.9169,71.1768
+,EQ,Green,Russian Federation,,,0,0,159.8431,53.2429
+,EQ,Green,Papua New Guinea,,,0,0,148.8665,-8.4157
+,EQ,Green,Russia,,,0,0,159.5092,51.7977
+,EQ,Green,Philippines,,,0,0,119.6653,18.6235
+,EQ,Green,Russia,,,0,0,156.1894,48.8667
+,WF,Green,Australia,,,0,0,129.47747145300605,-18.535156934453155
+,WF,Green,Brazil,,,0,0,-47.597751054991946,-13.30997447637483
+,WF,Green,Australia,,,0,0,127.72413513897801,-15.859563487149131
+,WF,Green,Brazil,,,0,0,-46.30449825925983,-8.574831310257418
+,WF,Green,Brazil,,,0,0,-50.93795930029581,-13.197983852931653
+,WF,Green,Brazil,,,0,0,-48.06376598386309,-13.773895878413944
+,WF,Green,Brazil,,,0,0,-47.19702532617837,-11.168603803832942
+,WF,Green,Brazil,,,0,0,-47.80689900541366,-12.227813973501359
+,WF,Green,Brazil,,,0,0,-50.355668386774745,-10.349090404071083
+,WF,Green,Australia,,,0,0,127.98113573251014,-17.549954541698067
+,WF,Green,Brazil,,,0,0,-44.625601258457806,-6.156636538704282
+,WF,Green,Australia,,,0,0,129.7245112368771,-14.134340890109396
+,WF,Green,Australia,,,0,0,143.64404546732615,-15.090852098955924
+,WF,Green,Australia,,,0,0,131.48537767131455,-18.127572553757695
+,WF,Green,Botswana,,,0,0,22.898947758610127,-20.92314992119704
+,WF,Green,Brazil,,,0,0,-49.290554316821904,-15.264491513359888
+,WF,Green,Australia,,,0,0,147.76773689863373,-25.414826572165424
+,WF,Green,Brazil,,,0,0,-43.68027209624797,-9.939586709497375
+,WF,Green,Australia,,,0,0,126.01010714742024,-15.004009864935089
+,WF,Green,Australia,,,0,0,150.4718245776752,-23.679922984079347
+,WF,Green,Brazil,,,0,0,-46.23006603101603,-15.889910308312503
+,WF,Green,Australia,,,0,0,136.4351520356768,-16.179861545072225
+,WF,Green,Australia,,,0,0,144.41323051361502,-16.018605667529872
+,WF,Green,Brazil,,,0,0,-47.28317229912317,-13.543250754841434
+,WF,Green,Brazil,,,0,0,-45.721677578689686,-9.31567579191926
+,WF,Green,Brazil,,,0,0,-45.236569573697956,-14.710498510603163
+,WF,Green,Brazil,,,0,0,-46.93481343158122,-12.832298101354317
+,WF,Green,Australia,,,0,0,147.62906723793165,-26.206697023171365
+,WF,Green,Brazil,,,0,0,-48.06034557312057,-13.631730070206402
+,WF,Green,Australia,,,0,0,123.39300889013441,-18.85828538342337
+,WF,Green,Brazil,,,0,0,-47.940837956353455,-13.789657942154607
+,WF,Green,Australia,,,0,0,144.6528740383369,-16.28733073863675
+,WF,Green,Brazil,,,0,0,-46.25900306763303,-7.740801944359693
+,WF,Green,Brazil,,,0,0,-46.123855415442314,-14.414039317757455
+,WF,Green,Australia,,,0,0,151.80714046895847,-25.105687442525454
+,WF,Green,Brazil,,,0,0,-48.314545698942055,-14.890932171888483
+,WF,Green,Brazil,,,0,0,-48.13765383266113,-13.960581370789505
+,WF,Green,Brazil,,,0,0,-44.987735114560024,-14.023488493483637
+,WF,Green,Australia,,,0,0,136.4200686121338,-16.526395992509805
+,WF,Green,Brazil,,,0,0,-47.04600390732232,-16.388134215984376
+,WF,Green,Brazil,,,0,0,-48.11102682859781,-13.353102106304023
+,WF,Green,Brazil,,,0,0,-46.61199817572965,-8.87792914212884
+,WF,Green,Brazil,,,0,0,-43.70034788582761,-15.776642842762742
+,WF,Green,Brazil,,,0,0,-45.77542085232616,-5.843119430900388
+,WF,Green,Australia,,,0,0,133.57060253809587,-19.00156643081754
+,WF,Green,Australia,,,0,0,144.1013984894905,-15.452826396478144
+,WF,Green,Australia,,,0,0,133.11000421331656,-16.604188418832088
+,WF,Green,Australia,,,0,0,133.67236066543683,-19.155487746769666
+,WF,Green,Brazil,,,0,0,-47.85242789639579,-11.092850007642697
+,WF,Green,Brazil,,,0,0,-47.22330756143629,-13.29993091985803
+,WF,Green,Brazil,,,0,0,-42.56108628954051,-7.7594162130365705
+,EQ,Green,Panama,,,0,0,-78.0468,7.3934
+,EQ,Green,Costa Rica,,,0,0,-84.8718,10.543
+,EQ,Green,Southeast Of Easter Island,,,0,0,-104.0781,-35.5811
+,EQ,Green,Fiji,,,0,0,-177.9514,-18.6384
+,EQ,Green,Russia,,,0,0,161.1177,52.6896
+,EQ,Green,Off East Coast Of Kamchatka,,,0,0,160.0391,51.6974
+,EQ,Green,Japan,,,0,0,141.6389,37.4317
+,EQ,Green,Japan,,,0,0,142.1935,39.7457
+,EQ,Green,Off East Coast Of Kamchatka,,,0,0,160.9921,51.4009
+,EQ,Green,Philippines,,,0,0,123.9099,10.8943
+,EQ,Green,Philippines,,,0,0,123.9567,10.8955
+,EQ,Green,Northern East Pacfic Rise,,,0,0,-103.881,8.3666
+,EQ,Green,South Of Panama,,,0,0,-82.6751,6.2913
+,EQ,Green,Russia,,,0,0,151.3111,45.6355
+,EQ,Green,Off East Coast Of Kamchatka,,,0,0,159.989,51.8025
+,FL,Green,Italy,,,0,0,17.576406,40.727631
+,WF,Green,Brazil,,,0,0,-44.42201283988765,-11.67310877913039
+,WF,Green,Australia,,,0,0,125.68336583674545,-16.28496984452716
+,WF,Green,Australia,,,0,0,134.49064002044074,-12.376469135552336
+,WF,Green,Brazil,,,0,0,-42.83999101165007,-5.780621892272534
+,WF,Green,Brazil,,,0,0,-48.43837591475373,-14.521371241496716
+,WF,Green,Brazil,,,0,0,-45.95958654199984,-14.335934434367589
+,WF,Green,Brazil,,,0,0,-42.64927323490868,-5.717349837582668
+,WF,Green,Australia,,,0,0,144.46747509708783,-16.13677280533096
+,WF,Green,Brazil,,,0,0,-48.03905016513681,-11.891719989957464
+,WF,Green,Brazil,,,0,0,-50.5531245698365,-12.780945737023261
+,WF,Green,Brazil,,,0,0,-46.88248718934889,-12.784054550124795
+,WF,Green,Brazil,,,0,0,-46.103448739995144,-14.20577942141096
+,WF,Green,Australia,,,0,0,127.76495573855706,-14.751384327780102
+,WF,Green,Brazil,,,0,0,-44.983073467738016,-11.833587401560711
+,WF,Green,Brazil,,,0,0,-47.532575983904735,-13.804323812601783
+,WF,Green,Brazil,,,0,0,-46.929372673547086,-12.654145908018469
+,WF,Green,Australia,,,0,0,131.61746918222264,-16.034457515341337
+,WF,Green,Australia,,,0,0,129.23347207649556,-18.945332763885805
+,EQ,Green,Philippines,,,0,0,126.9002,10.4147
+,EQ,Green,Philippines,,,0,0,126.5546,9.3055
+,EQ,Green,Russia,,,0,0,159.3953,51.6336
+,EQ,Green,Papua New Guinea,,,0,0,152.6772,-4.2645
+,EQ,Green,Russia,,,0,0,159.747,51.5767
+,EQ,Green,Pakistan,,,0,0,64.115,28.3122
+,EQ,Green,Russia,,,0,0,159.5017,51.6489
+,EQ,Green,Solomon Islands,,,0,0,161.3306,-10.4771
+,EQ,Green,Vanuatu,,,0,0,169.4773,-19.4183
+,EQ,Green,Russian Federation,,,0,0,158.5752,52.0031
+,EQ,Green,Russia,,,0,0,159.4472,51.8982
+,EQ,Green,Russia,,,0,0,159.7205,51.7631
+,EQ,Green,South Of Kermadec Islands,,,0,0,-179.0105,-33.6649
+,EQ,Green,Indonesia,,,0,0,126.6613,2.011
+,EQ,Green,Russia,,,0,0,159.6315,51.619
+,EQ,Green,Russia,,,0,0,160.0169,51.6362
+,EQ,Green,Russia,,,0,0,151.3983,45.5271
+,EQ,Green,Saint Vincent and the Grenadines,,,0,0,-61.2256,13.4708
+,EQ,Green,Russia,,,0,0,159.2483,52.49
+,EQ,Green,Indonesia,,,0,0,101.3492,-2.9624
+,EQ,Green,Russia,,,0,0,165.6729,54.4217
+,EQ,Green,Indonesia,,,0,0,136.3008,-2.9727
+,EQ,Green,Off East Coast Of Kamchatka,,,0,0,160.1994,52.0116
+,EQ,Green,Indonesia,,,0,0,136.2691,-3.0113
+,EQ,Green,Indonesia,,,0,0,136.3381,-2.8749
+,EQ,Green,Northern Mid-Atlantic Ridge,,,0,0,-43.778,28.211
+,EQ,Green,Indonesia,,,0,0,122.9748,1.5646
+,EQ,Green,Japan,,,0,0,139.9476,35.5187
+,EQ,Green,Tonga Islands Region,,,0,0,-175.3189,-23.9287
+,EQ,Green,Russia,,,0,0,158.538,51.3544
+,FL,Green,Japan,,,0,0,141.014893484113,38.29825005
+,FL,Green,Colombia,,,0,0,-75.1844057,6.1442998
+,FL,Green,Costa Rica,,,0,0,-84.7692343992718,9.98418825
+,FL,Green,Guatemala,,,0,0,-91.731941,14.707588
+,FL,Green,Sudan,,,0,0,32.4944014,15.2363802
+,FL,Green,Central African Republic,,,0,0,15.8688285,4.9418234
+,WF,Green,Australia,,,0,0,133.11803001767848,-16.605476639415258
+,WF,Green,Brazil,,,0,0,-46.42000853089921,-15.287102920105328
+,WF,Green,Australia,,,0,0,126.17352337607602,-14.830927862485547
+,WF,Green,Brazil,,,0,0,-47.08403113268943,-11.980913848850776
+,WF,Green,Australia,,,0,0,149.33188743079512,-25.258324861736803
+,WF,Green,Australia,,,0,0,122.99752051391725,-18.890653292925528
+,WF,Green,Botswana,,,0,0,24.015389783358888,-19.954739324606848
+,WF,Green,Brazil,,,0,0,-45.38246053575585,-10.803826039985609
+,WF,Green,Australia,,,0,0,135.175790281579,-14.939818862359832
+,WF,Green,Brazil,,,0,0,-47.924414356350724,-11.976562139374858
+,WF,Green,Australia,,,0,0,149.33311151873548,-24.297342244451688
+,WF,Green,Australia,,,0,0,133.642919325395,-19.138387714383057
+,WF,Green,Australia,,,0,0,150.27734287197742,-22.672480318644112
+,WF,Green,Australia,,,0,0,133.8019022085231,-19.11658729838871
+,WF,Green,Brazil,,,0,0,-48.540494890506594,-10.658663000571126
+,WF,Green,Brazil,,,0,0,-47.42156774447469,-13.173133354483472
+,WF,Green,Brazil,,,0,0,-44.29786648068791,-10.924877247957545
+,WF,Green,Brazil,,,0,0,-44.99298490412613,-11.835075424607481
+,WF,Green,Brazil,,,0,0,-48.12734817822926,-14.699616557684909

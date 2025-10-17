@@ -116,6 +116,6 @@ def fetch_gdacs():
     return df
 
 #just to make sure it's the right dataset
-#if __name__ == "__main__":
+if __name__ == "__main__":
     df = fetch_gdacs()
     print(df.head())
