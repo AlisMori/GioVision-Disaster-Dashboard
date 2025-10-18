@@ -28,83 +28,23 @@ def clean_text(text):
     text = re.sub(r"<.*?>", "", text)  # remove HTML tags
     return text.strip()
 
-def extract_lat_lon_from_item(item, ns):
-    """
-    Try multiple geometry sources commonly seen in GDACS RSS items:
-    1) <georss:point> "lat lon"
-    2) <geo:lat>, <geo:long>
-    3) JSON in <gdacs:geojson> or <gdacs:geometry> (GeoJSON-like)
-    Returns (lat, lon) or (None, None).
-    """
-    # 1) georss:point "lat lon"
-    pt = item.findtext("georss:point", namespaces=ns)
-    if pt and isinstance(pt, str):
-        parts = pt.strip().split()
-        if len(parts) == 2:
-            try:
-                lat = float(parts[0]); lon = float(parts[1])
-                return lat, lon
-            except ValueError:
-                pass
-
-    # 2) geo:lat + geo:long
-    glat = item.findtext("geo:lat", namespaces=ns)
-    glon = item.findtext("geo:long", namespaces=ns)
-    if glat and glon:
-        try:
-            return float(glat), float(glon)
-        except ValueError:
-            pass
-
-    # 3) JSON inside gdacs:geojson or gdacs:geometry
-    for tag in ("gdacs:geojson", "gdacs:geometry"):
-        geom_xml = item.findtext(tag, namespaces=ns)
-        if geom_xml:
-            # Extract {...} JSON blob if wrapped
-            m = re.search(r"\{.*\}", geom_xml, flags=re.DOTALL)
-            blob = m.group(0) if m else geom_xml
-            try:
-                data = json.loads(blob)
-                coords = data.get("coordinates")
-                if isinstance(coords, (list, tuple)):
-                    # [lon, lat]
-                    if len(coords) >= 2 and isinstance(coords[0], (int, float, str)):
-                        lon = float(coords[0]); lat = float(coords[1])
-                        return lat, lon
-                    # [[lon, lat], ...]
-                    if coords and isinstance(coords[0], (list, tuple)) and len(coords[0]) >= 2:
-                        lon = float(coords[0][0]); lat = float(coords[0][1])
-                        return lat, lon
-            except Exception:
-                pass
-
+def extract_coords_from_xml(geom_xml):
+    """Extract latitude and longitude from GDACS geometry_xml field."""
+    if not geom_xml or pd.isna(geom_xml):
+        return None, None
+    try:
+        # GDACS sometimes returns XML with <coordinates>...</coordinates> inside
+        geom_str = re.search(r"\{.*\}", geom_xml)
+        if geom_str:
+            data = json.loads(geom_str.group())
+            coords = data.get("coordinates", [])
+            if coords and isinstance(coords[0], (int, float)):
+                return coords[1], coords[0]  # lat, lon
+            elif len(coords) > 0 and isinstance(coords[0], list):
+                return coords[0][1], coords[0][0]
+    except Exception:
+        pass
     return None, None
-
-def extract_severity_text(item, ns):
-    """
-    Extract a human-readable severity label from common GDACS tags.
-    Returns a string or None.
-    Tries (in order):
-      - <gdacs:severitytext>
-      - <gdacs:severitydesc>
-      - <gdacs:severity> (when it looks like text)
-    """
-    sev_text = (
-        item.findtext("gdacs:severitytext", namespaces=ns)
-        or item.findtext("gdacs:severitydesc", namespaces=ns)
-    )
-
-    if not sev_text:
-        # severity might sometimes be textual instead of numeric
-        raw = item.findtext("gdacs:severity", namespaces=ns)
-        if raw:
-            # If it parses as a number, we ignore (we're using only text labels).
-            try:
-                float(str(raw).strip())
-            except ValueError:
-                sev_text = raw
-
-    return clean_text(sev_text) if isinstance(sev_text, str) else None
 
 # ----------------------------
 # Main Function
@@ -192,6 +132,7 @@ def fetch_gdacs():
             "Latitude", "Longitude", "Severity", "url"
         ]
         df = df[[c for c in keep if c in df.columns]]
+
 
     # Save cleaned data
     os.makedirs("processed_data", exist_ok=True)
