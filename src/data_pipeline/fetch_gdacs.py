@@ -1,8 +1,13 @@
 """
 fetch_gdacs.py
 --------------
-Fetches and cleans live data from the Global Disaster Alert and Coordination System (GDACS) XML feed.
-Returns a clean DataFrame for dashboard use.
+Fetches and cleans live data from the Global Disaster Alert and Coordination System (GDACS) RSS feed.
+Outputs a CSV at processed_data/gdacs_cleaned.csv with key fields for a dashboard.
+
+Columns include:
+- Disaster Type, Event Name, Country, iso3
+- Alert Level, Alert Score, Start Date, End Date, Days Active
+- title, description, Latitude, Longitude, Severity (text), url
 """
 
 import requests
@@ -51,7 +56,7 @@ def fetch_gdacs():
     url = "https://www.gdacs.org/xml/rss.xml"
 
     try:
-        response = requests.get(url, timeout=15)
+        response = requests.get(url, timeout=20)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"Error fetching GDACS data: {e}")
@@ -59,10 +64,17 @@ def fetch_gdacs():
 
     # Parse XML
     root = ET.fromstring(response.content)
-    ns = {'gdacs': 'http://www.gdacs.org'}
+    ns = {
+        'gdacs': 'http://www.gdacs.org',
+        'geo': 'http://www.w3.org/2003/01/geo/wgs84_pos#',
+        'georss': 'http://www.georss.org/georss'
+    }
 
     alerts = []
     for item in root.findall(".//item"):
+        lat, lon = extract_lat_lon_from_item(item, ns)
+        severity_text = extract_severity_text(item, ns)
+
         data = {
             "title": item.findtext("title"),
             "description": item.findtext("description"),
@@ -75,62 +87,62 @@ def fetch_gdacs():
             "fromdate": item.findtext("gdacs:fromdate", namespaces=ns),
             "todate": item.findtext("gdacs:todate", namespaces=ns),
             "url": item.findtext("link"),
-            "geometry_xml": item.findtext("gdacs:geometry", namespaces=ns)
+            "Latitude": lat,
+            "Longitude": lon,
+            "Severity": severity_text,   # single text label column
         }
         alerts.append(data)
 
     df = pd.DataFrame(alerts)
 
-    # Handle missing geometry
-    if "geometry_xml" not in df.columns:
-        df["geometry_xml"] = None
+    # Basic typing/cleanup
+    if not df.empty:
+        # Drop rows without core identifiers (optional, keeps feed cleaner)
+        df.dropna(subset=["eventtype", "country"], inplace=True)
 
-    # Basic cleaning
-    df.dropna(subset=["eventtype", "country"], inplace=True)
-    df["fromdate"] = pd.to_datetime(df["fromdate"], errors="coerce")
-    df["todate"] = pd.to_datetime(df["todate"], errors="coerce")
-    df["alertscore"] = pd.to_numeric(df["alertscore"], errors="coerce")
+        # Types
+        df["fromdate"] = pd.to_datetime(df["fromdate"], errors="coerce", utc=True)
+        df["todate"] = pd.to_datetime(df["todate"], errors="coerce", utc=True)
+        df["alertscore"] = pd.to_numeric(df["alertscore"], errors="coerce")
 
-    # Rename columns
-    df.rename(columns={
-        "eventtype": "Disaster Type",
-        "eventname": "Event Name",
-        "country": "Country",
-        "alertlevel": "Alert Level",
-        "fromdate": "Start Date",
-        "todate": "End Date",
-        "alertscore": "Alert Score"
-    }, inplace=True)
+        # Rename columns for dashboard-friendly names
+        df.rename(columns={
+            "eventtype": "Disaster Type",
+            "eventname": "Event Name",
+            "country": "Country",
+            "alertlevel": "Alert Level",
+            "fromdate": "Start Date",
+            "todate": "End Date",
+            "alertscore": "Alert Score"
+        }, inplace=True)
 
-    # Clean text fields
-    df["title"] = df["title"].apply(clean_text)
-    df["description"] = df["description"].apply(clean_text)
-    df["Event Name"] = df["Event Name"].apply(clean_text)
+        # Clean text fields
+        for col in ["title", "description", "Event Name", "Severity"]:
+            if col in df.columns:
+                df[col] = df[col].apply(clean_text)
 
-    # Extract lat/lon from geometry_xml
-    df["Latitude"], df["Longitude"] = zip(*df["geometry_xml"].apply(extract_coords_from_xml))
+        # Days Active
+        df["Days Active"] = (df["End Date"] - df["Start Date"]).dt.days
 
-    # Add Days Active
-    df["Days Active"] = (df["End Date"] - df["Start Date"]).dt.days
-
-    # Keep relevant columns
-    df = df[[
-        "Disaster Type", "Event Name", "Country", "iso3",
-        "Alert Level", "Alert Score", "Start Date", "End Date",
-        "Days Active", "title", "description", "Latitude", "Longitude", "url"
-    ]]
+        # Keep relevant columns (in order)
+        keep = [
+            "Disaster Type", "Event Name", "Country", "iso3",
+            "Alert Level", "Alert Score", "Start Date", "End Date",
+            "Days Active", "title", "description",
+            "Latitude", "Longitude", "Severity", "url"
+        ]
+        df = df[[c for c in keep if c in df.columns]]
 
 
     # Save cleaned data
     os.makedirs("processed_data", exist_ok=True)
-    processed_csv_path = "data/gdacs_cleaned.csv"
-    df.to_csv(processed_csv_path, index=False)
+    out_path = "processed_data/gdacs_cleaned.csv"
+    df.to_csv(out_path, index=False)
 
-    print(f"Fetched {len(df)} alerts and saved to {processed_csv_path}")
+    print(f"Fetched {len(df)} alerts and saved to {out_path}")
     return df
 
-# Uncomment to test independently
-# if __name__ == "__main__":
-#     df = fetch_gdacs()
-#     print(df.head())
-#
+# Run directly here
+#if __name__ == "__main__":
+    df = fetch_gdacs()
+    print(df.head())
