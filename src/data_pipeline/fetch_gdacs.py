@@ -10,6 +10,7 @@ Columns include:
 - title, description, Latitude, Longitude, Severity (text), url
 """
 
+
 import requests
 import xml.etree.ElementTree as ET
 import pandas as pd
@@ -28,23 +29,33 @@ def clean_text(text):
     text = re.sub(r"<.*?>", "", text)  # remove HTML tags
     return text.strip()
 
-def extract_coords_from_xml(geom_xml):
-    """Extract latitude and longitude from GDACS geometry_xml field."""
-    if not geom_xml or pd.isna(geom_xml):
-        return None, None
-    try:
-        # GDACS sometimes returns XML with <coordinates>...</coordinates> inside
-        geom_str = re.search(r"\{.*\}", geom_xml)
-        if geom_str:
-            data = json.loads(geom_str.group())
-            coords = data.get("coordinates", [])
-            if coords and isinstance(coords[0], (int, float)):
-                return coords[1], coords[0]  # lat, lon
-            elif len(coords) > 0 and isinstance(coords[0], list):
-                return coords[0][1], coords[0][0]
-    except Exception:
-        pass
-    return None, None
+
+def extract_lat_lon_from_item(item, ns):
+    """Extract latitude and longitude from GDACS <geo:Point> or <gdacs:geometry>."""
+    # Try <geo:lat> and <geo:long> tags first
+    lat = item.findtext("geo:lat", namespaces=ns)
+    lon = item.findtext("geo:long", namespaces=ns)
+
+    # Try <gdacs:geometry> fallback
+    if (lat is None or lon is None) and item.find("gdacs:geometry", namespaces=ns) is not None:
+        geom_xml = item.findtext("gdacs:geometry", namespaces=ns)
+        if geom_xml:
+            try:
+                geom_root = ET.fromstring(geom_xml)
+                lat = geom_root.findtext(".//lat") or lat
+                lon = geom_root.findtext(".//lon") or lon
+            except ET.ParseError:
+                pass
+
+    return lat, lon
+
+
+def extract_severity_text(item, ns):
+    """Extract severity text from GDACS feed (gdacs:severity or gdacs:severitytext)."""
+    severity = item.findtext("gdacs:severity", namespaces=ns)
+    severity_text = item.findtext("gdacs:severitytext", namespaces=ns)
+    return severity_text or severity or ""
+
 
 # ----------------------------
 # Main Function
@@ -89,7 +100,7 @@ def fetch_gdacs():
             "url": item.findtext("link"),
             "Latitude": lat,
             "Longitude": lon,
-            "Severity": severity_text,   # single text label column
+            "Severity": severity_text,
         }
         alerts.append(data)
 
@@ -97,15 +108,12 @@ def fetch_gdacs():
 
     # Basic typing/cleanup
     if not df.empty:
-        # Drop rows without core identifiers (optional, keeps feed cleaner)
         df.dropna(subset=["eventtype", "country"], inplace=True)
 
-        # Types
         df["fromdate"] = pd.to_datetime(df["fromdate"], errors="coerce", utc=True)
         df["todate"] = pd.to_datetime(df["todate"], errors="coerce", utc=True)
         df["alertscore"] = pd.to_numeric(df["alertscore"], errors="coerce")
 
-        # Rename columns for dashboard-friendly names
         df.rename(columns={
             "eventtype": "Disaster Type",
             "eventname": "Event Name",
@@ -116,15 +124,12 @@ def fetch_gdacs():
             "alertscore": "Alert Score"
         }, inplace=True)
 
-        # Clean text fields
         for col in ["title", "description", "Event Name", "Severity"]:
             if col in df.columns:
                 df[col] = df[col].apply(clean_text)
 
-        # Days Active
         df["Days Active"] = (df["End Date"] - df["Start Date"]).dt.days
 
-        # Keep relevant columns (in order)
         keep = [
             "Disaster Type", "Event Name", "Country", "iso3",
             "Alert Level", "Alert Score", "Start Date", "End Date",
@@ -133,8 +138,6 @@ def fetch_gdacs():
         ]
         df = df[[c for c in keep if c in df.columns]]
 
-
-    # Save cleaned data
     os.makedirs("processed_data", exist_ok=True)
     out_path = "processed_data/gdacs_cleaned.csv"
     df.to_csv(out_path, index=False)
@@ -142,7 +145,7 @@ def fetch_gdacs():
     print(f"Fetched {len(df)} alerts and saved to {out_path}")
     return df
 
-# Run directly here
-#if __name__ == "__main__":
+
+if __name__ == "__main__":
     df = fetch_gdacs()
     print(df.head())
