@@ -194,8 +194,8 @@ def fetch_gdacs():
         df = df[[c for c in keep if c in df.columns]]
 
     # Save cleaned data
-    os.makedirs("processed_data", exist_ok=True)
-    out_path = "processed_data/gdacs_cleaned.csv"
+    os.makedirs("data", exist_ok=True)
+    out_path = "data/gdacs_cleaned.csv"
     df.to_csv(out_path, index=False)
 
     print(f"Fetched {len(df)} alerts and saved to {out_path}")
