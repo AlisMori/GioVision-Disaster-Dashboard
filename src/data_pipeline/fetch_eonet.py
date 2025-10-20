@@ -7,31 +7,19 @@ from datetime import datetime, timedelta
 def fetch_eonet(year_start: int = 2010, year_end: int = 2025, limit: int = 10000) -> pd.DataFrame:
     """
     Fetch natural events from NASA EONET API.
-
-    EONET covers: wildfires, storms, volcanoes, sea ice, lake ice, dust storms, etc.
-
-    Args:
-        year_start: Start year for filtering (default 2010)
-        year_end: End year for filtering (default 2025)
-        limit: Maximum events to fetch (default 10000)
-
-    Returns:
-        pd.DataFrame: Events with columns: event_id, title, event_type, date,
-                      latitude, longitude, source
+    Covers wildfires, storms, volcanoes, sea ice, etc.
     """
 
     print("=" * 60)
     print("FETCHING EONET DATA FROM NASA API")
     print("=" * 60)
 
-    # NASA EONET API endpoint
     base_url = "https://eonet.gsfc.nasa.gov/api/v3/events"
 
-    # Parameters for the API request
     params = {
-        'limit': limit,  # Get up to 10,000 events
-        'sort': 'date',  # Sort by date
-        'status': 'all'  # Include all events (closed and open)
+        'limit': limit,
+        'sort': 'date',
+        'status': 'all'
     }
 
     print(f"\nFetching EONET data from: {base_url}")
@@ -39,13 +27,11 @@ def fetch_eonet(year_start: int = 2010, year_end: int = 2025, limit: int = 10000
     print(f"Date range: {year_start}-{year_end}")
 
     try:
-        # Make the API request
         print("\nConnecting to NASA EONET API...")
         response = requests.get(base_url, params=params, timeout=30)
-        response.raise_for_status()  # Raise error if request failed
+        response.raise_for_status()
         print("✓ Successfully connected to API")
 
-        # Parse the JSON response
         data = response.json()
         events_raw = data.get('events', [])
         print(f"✓ Retrieved {len(events_raw)} events from API")
@@ -55,40 +41,37 @@ def fetch_eonet(year_start: int = 2010, year_end: int = 2025, limit: int = 10000
         print("Returning empty DataFrame")
         return pd.DataFrame()
 
-    # Process the raw event data
     print("\nProcessing events...")
     processed_events = []
 
     for event in events_raw:
         try:
-            # Extract basic info
             event_id = event.get('id')
             title = event.get('title', '')
 
-            # Get event type/category
+            # Get disaster category
             categories = event.get('categories', [])
             event_type = categories[0].get('title', 'Unknown') if categories else 'Unknown'
 
-            # Get event date
+            # Get date from latest geometry point
             geometry = event.get('geometry', [])
             if not geometry:
                 continue
 
-            # Most recent geometry point (latest update)
             geo_point = geometry[-1]
             event_date_str = geo_point.get('date')
 
             if not event_date_str:
                 continue
 
-            # Parse date
+            # Parse the date
             try:
                 event_date = datetime.fromisoformat(event_date_str.replace('Z', '+00:00')).date()
                 event_year = event_date.year
             except:
                 continue
 
-            # Filter by year range
+            # Skip if outside year range
             if event_year < year_start or event_year > year_end:
                 continue
 
@@ -100,7 +83,7 @@ def fetch_eonet(year_start: int = 2010, year_end: int = 2025, limit: int = 10000
             if latitude is None or longitude is None:
                 continue
 
-            # Get source
+            # Get source URL
             sources = event.get('sources', [])
             source = sources[0].get('url', '') if sources else ''
 
@@ -116,10 +99,9 @@ def fetch_eonet(year_start: int = 2010, year_end: int = 2025, limit: int = 10000
             })
 
         except Exception as e:
-            # Skip events that cause errors
             continue
 
-    # Create DataFrame
+    # Build dataframe
     if processed_events:
         df = pd.DataFrame(processed_events)
         print(f"✓ Processed {len(df)} events with valid data")
@@ -127,7 +109,7 @@ def fetch_eonet(year_start: int = 2010, year_end: int = 2025, limit: int = 10000
         print("✗ No valid events found")
         df = pd.DataFrame()
 
-    # Summary statistics
+    # Print summary
     if len(df) > 0:
         print("\n" + "=" * 60)
         print("EONET DATA SUMMARY")
@@ -146,13 +128,7 @@ def fetch_eonet(year_start: int = 2010, year_end: int = 2025, limit: int = 10000
 
 
 def save_eonet_data(df: pd.DataFrame, filepath: str = "data/raw/eonet_raw.csv") -> None:
-    """
-    Save EONET DataFrame to CSV file.
-
-    Args:
-        df: DataFrame to save
-        filepath: Where to save the CSV
-    """
+    """Save EONET data to CSV."""
     if len(df) == 0:
         print("No data to save")
         return
@@ -167,14 +143,11 @@ def save_eonet_data(df: pd.DataFrame, filepath: str = "data/raw/eonet_raw.csv") 
 if __name__ == "__main__":
     import os
 
-    # Get project root and build filepath
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     filepath = os.path.join(project_root, "data", "raw", "eonet_raw.csv")
 
-    # Fetch data
     eonet_df = fetch_eonet(year_start=2010, year_end=2025)
 
-    # Save to CSV
     if len(eonet_df) > 0:
         save_eonet_data(eonet_df, filepath=filepath)
         print("\nFirst few rows:")

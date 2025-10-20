@@ -1,11 +1,20 @@
 Event ID,Event Title,Disaster Type,Disaster Type Standardized,Event Date,Start Year,Month,Latitude,Longitude,Source URL
+EONET_15812,Tropical Storm Fengshen,Severe Storms,Storm,2025-10-20,2025,10,18.5,114.2,https://www.metoc.navy.mil/jtwc/products/wp3025.tcw
+EONET_15813,Tropical Cyclone Chenge,Severe Storms,Storm,2025-10-20,2025,10,-9.0,67.0,https://www.metoc.navy.mil/jtwc/products/sh0426.tcw
+EONET_15814,Flood in Philippines 1103568,Floods,Flood,2025-10-16,2025,10,7.1082139,124.8233384,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103568
+EONET_15807,"RX Mason 4828 Prescribed Fire, Mason, Texas",Wildfires,Wildfire,2025-10-16,2025,10,30.92305556,-99.37416667,https://irwin.doi.gov/observer/incidents/3797347a-52f0-4dd9-9537-0f699e97be44
+EONET_15808,"Flood in Guatemala, Spain 1103564",Floods,Flood,2025-10-16,2025,10,43.3224219,-1.9838889,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103564
+EONET_15815,Flood in Costa Rica 1103569,Floods,Flood,2025-10-15,2025,10,9.935475,-84.0590681,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103569
+EONET_15816,Flood in Argentina 1103570,Floods,Flood,2025-10-15,2025,10,-29.0177384,-57.8869739,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103570
+EONET_15817,Flood in Algeria 1103567,Floods,Flood,2025-10-15,2025,10,33.95807,5.70112623043929,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103567
 EONET_15803,Flood in Italy 1103563,Floods,Flood,2025-10-14,2025,10,40.0615029,9.0975894,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103563
 EONET_15804,Flood in Malaysia 1103560,Floods,Flood,2025-10-13,2025,10,4.3242506,101.9085845,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103560
-EONET_15801,Tropical Storm Lorenzo,Severe Storms,Storm,2025-10-15,2025,10,20.5,-45.1,https://www.nhc.noaa.gov/archive/2025/LORENZO.shtml
+EONET_15801,Tropical Storm Lorenzo,Severe Storms,Storm,2025-10-15,2025,10,23.1,-42.5,https://www.nhc.noaa.gov/archive/2025/LORENZO.shtml
 EONET_15805,Flood in Venezuela 1103561,Floods,Flood,2025-10-12,2025,10,7.3473611,-61.8331903,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103561
+EONET_15809,Flood in New Zealand 1103565,Floods,Flood,2025-10-12,2025,10,-38.4303311,174.7786485,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103565
 EONET_15799,Flood in Colombia 1103558,Floods,Flood,2025-10-11,2025,10,7.0673313,-73.8525627,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103558
 EONET_15802,Flood in Guatemala 1103559,Floods,Flood,2025-10-11,2025,10,14.225024,-90.4757481,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103559
-EONET_15796,Subtropical Storm Karen,Severe Storms,Storm,2025-10-10,2025,10,46.3,-31.2,https://www.nhc.noaa.gov/archive/2025/KAREN.shtml
+EONET_15796,Subtropical Storm Karen,Severe Storms,Storm,2025-10-10,2025,10,47.5,-30.2,https://www.nhc.noaa.gov/archive/2025/KAREN.shtml
 EONET_15795,Tropical Storm Raymond,Severe Storms,Storm,2025-10-12,2025,10,22.5,-110.0,https://www.metoc.navy.mil/jtwc/products/ep1725.tcw
 EONET_15790,Flood in Georgia 1103552,Floods,Flood,2025-10-09,2025,10,41.8242785,46.2738235,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103552
 EONET_15797,Flood in Spain 1103556,Floods,Flood,2025-10-08,2025,10,37.9775416,-0.6828446,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103556
@@ -198,6 +207,7 @@ EONET_15725,Wildfire in Australia 1025228,Wildfires,Wildfire,2025-09-24,2025,9,-
 EONET_15726,Wildfire in Brazil 1025219,Wildfires,Wildfire,2025-09-24,2025,9,-5.857532615721702,-45.771509760771295,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025219
 EONET_15789,"Northwest Sands Moquah Barrens Block A RX Prescribed Fire, Bayfield, Wisconsin",Wildfires,Wildfire,2025-09-24,2025,9,46.619383,-91.306,https://irwin.doi.gov/observer/incidents/bdb9e5c4-0cb4-4666-aacb-3b3ce8d38105
 EONET_15578,"OTR 167 Wildfire, Ada, Idaho",Wildfires,Wildfire,2025-09-24,2025,9,43.254705,-116.128138,https://irwin.doi.gov/observer/incidents/68bcdd1c-5c7b-4e66-b9da-4e77cf303f5f
+EONET_15818,"Millcreek Canyon Piles RX Prescribed Fire, Salt Lake, Utah",Wildfires,Wildfire,2025-09-24,2025,9,40.6875,-111.601217,https://irwin.doi.gov/observer/incidents/206e6902-e33a-4692-bfeb-0943272d1cdd
 EONET_15560,Typhoon Bualoi,Severe Storms,Storm,2025-09-28,2025,9,18.2,106.2,https://www.metoc.navy.mil/jtwc/products/wp2625.tcw
 EONET_15582,Wildfire in Brazil 1025116,Wildfires,Wildfire,2025-09-23,2025,9,-11.662068342520037,-44.41579399008056,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025116
 EONET_15583,Wildfire in Australia 1025119,Wildfires,Wildfire,2025-09-23,2025,9,-16.28816313822759,125.70884914595808,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025119
@@ -309,8 +319,8 @@ EONET_15530,Wildfire in Australia 1025081,Wildfires,Wildfire,2025-09-11,2025,9,-
 EONET_15531,Wildfire in Mozambique 1025078,Wildfires,Wildfire,2025-09-11,2025,9,-18.79910846158545,33.94587578798417,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025078
 EONET_15432,"SMR Unit 100/101 Rx 0911 Prescribed Fire, Wakulla, Florida",Wildfires,Wildfire,2025-09-11,2025,9,30.144067,-84.179833,https://irwin.doi.gov/observer/incidents/6a4274e1-9032-464c-a52a-de10fb213597
 EONET_15435,"Rx Quanah Prescribed Fire, Comanche, Oklahoma",Wildfires,Wildfire,2025-09-11,2025,9,34.695669,-98.646225,https://irwin.doi.gov/observer/incidents/2a4440a5-9a6c-4ea6-94f6-2563c086f288
-EONET_15493,Iceberg A23I,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-53.51,-40.0,https://usicecenter.gov/pub/Iceberg_Tabular.csv
-EONET_15494,Iceberg B22J,Sea and Lake Ice,Ice Event,2025-09-26,2025,9,-71.58,-174.24,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_15493,Iceberg A23I,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-52.25,-41.57,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_15494,Iceberg B22J,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-71.17,-175.8,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_15492,Flood in Canada 1103498,Floods,Flood,2025-09-10,2025,9,49.530557,-96.69342,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103498
 EONET_15460,Wildfire in Madagascar 1025030,Wildfires,Wildfire,2025-09-10,2025,9,-16.197353571397684,46.86796702877285,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025030
 EONET_15461,Wildfire in South Africa 1025032,Wildfires,Wildfire,2025-09-10,2025,9,-22.815870604895025,31.03716456488409,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025032
@@ -322,6 +332,7 @@ EONET_15476,Wildfire in Brazil 1025044,Wildfires,Wildfire,2025-09-10,2025,9,-11.
 EONET_15540,Wildfire in Brazil 1025089,Wildfires,Wildfire,2025-09-10,2025,9,-7.533416695688798,-44.3699792352936,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025089
 EONET_15517,"Boyd Wildfire, Garden, Nebraska",Wildfires,Wildfire,2025-09-10,2025,9,41.76390318,-102.4997988,https://irwin.doi.gov/observer/incidents/bc7d868c-f99f-4501-9c5e-548059b2e8e0
 EONET_15437,"SMR Unit 21-138 Rx 0910 Prescribed Fire, Jefferson, Florida",Wildfires,Wildfire,2025-09-10,2025,9,30.1314,-84.046317,https://irwin.doi.gov/observer/incidents/fba8a097-04ec-4dcc-bbf2-aa8fd604c16a
+EONET_15811,"Kanlaon Volcano, Philippines",Volcanoes,Volcano,2025-09-10,2025,9,10.4096,123.13,https://volcano.si.edu/volcano.cfm?vn=272020
 EONET_15422,Wildfire in Australia 1025012,Wildfires,Wildfire,2025-09-09,2025,9,-17.902248690802136,123.38372616070278,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025012
 EONET_15445,Wildfire in Australia 1025018,Wildfires,Wildfire,2025-09-09,2025,9,-18.027467836888665,123.13215208139728,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025018
 EONET_15446,Wildfire in Brazil 1025022,Wildfires,Wildfire,2025-09-09,2025,9,-8.975909176568774,-46.09953525228293,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1025022
@@ -396,7 +407,7 @@ EONET_15381,"Pinnacle Wildfire, Curry, Oregon",Wildfires,Wildfire,2025-09-04,202
 EONET_15522,"Green Rattle Complex Incident Complex, Bonner, Idaho",Wildfires,Wildfire,2025-09-04,2025,9,48.267881,-116.121362,https://irwin.doi.gov/observer/incidents/ad3b97c8-8521-4872-964c-aae489b87481
 EONET_15302,Tropical Storm Peipah,Severe Storms,Storm,2025-09-05,2025,9,34.9,139.3,https://www.metoc.navy.mil/jtwc/products/wp2125.tcw
 EONET_15488,Iceberg A23G,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-52.55,-38.96,https://usicecenter.gov/pub/Iceberg_Tabular.csv
-EONET_15489,Iceberg A23H,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-51.63,-41.29,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_15489,Iceberg A23H,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-51.54,-39.99,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_15388,"Kelsey Peak Wildfire, Curry, Oregon",Wildfires,Wildfire,2025-09-03,2025,9,42.72971284,-123.76,https://irwin.doi.gov/observer/incidents/850543d7-f7fe-450a-a0a3-605e37cad462
 EONET_15384,"Sentinel Wildfire, Humboldt, Nevada",Wildfires,Wildfire,2025-09-03,2025,9,41.827033,-117.993817,https://irwin.doi.gov/observer/incidents/3b33f5ef-80db-4760-a91b-bf7c325dfe8f
 EONET_15392,Flood in Belgium 1103486,Floods,Flood,2025-09-03,2025,9,50.8465573,4.351697,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103486
@@ -461,6 +472,7 @@ EONET_15383,"LABOR MOUNTAIN Wildfire, Kittitas, Washington",Wildfires,Wildfire,2
 EONET_15294,"ROOT Wildfire, Shasta, California",Wildfires,Wildfire,2025-09-01,2025,9,41.160217,-122.397417,https://irwin.doi.gov/observer/incidents/f288f554-2a4a-433d-a008-7ab6e4391a0a
 EONET_15299,"Rattlesnake Wildfire, Ferry, Washington",Wildfires,Wildfire,2025-09-01,2025,9,47.873166,-118.374666,https://irwin.doi.gov/observer/incidents/6b62bd16-6651-441c-b8cc-a647588aadb4
 EONET_15295,"TACOMA CREEK Wildfire, Stevens, Washington",Wildfires,Wildfire,2025-09-01,2025,9,48.49425,-117.511367,https://irwin.doi.gov/observer/incidents/b4db0900-9b38-46aa-b281-0e1609183977
+EONET_15810,"Ioto Volcano, Japan",Volcanoes,Volcano,2025-09-01,2025,9,24.751,141.289,https://volcano.si.edu/volcano.cfm?vn=284120
 EONET_15436,"White Pine Wildfire, Latah, Idaho",Wildfires,Wildfire,2025-08-31,2025,8,47.018117,-116.655633,https://irwin.doi.gov/observer/incidents/35c56174-7746-4d76-9ed3-5f26549e41a6
 EONET_15151,"KATY CREEK Wildfire, Ferry, Washington",Wildfires,Wildfire,2025-08-31,2025,8,48.6766667,-118.16,https://irwin.doi.gov/observer/incidents/a6d14000-e2ce-426f-9f40-ab4d19301665
 EONET_15306,Flood in Switzerland 1103482,Floods,Flood,2025-08-31,2025,8,47.4036425,8.5465866,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103482
@@ -1455,7 +1467,7 @@ EONET_14314,"Grassy Wildfire, Fremont, Idaho",Wildfires,Wildfire,2025-07-11,2025
 EONET_14336,"Rolling Hills Wildfire, Converse, Wyoming",Wildfires,Wildfire,2025-07-11,2025,7,42.942667,-105.9405,https://irwin.doi.gov/observer/
 EONET_14284,Iceberg B22H,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-71.46,-175.09,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_14327,"Johnny Buck Wildfire, Miami-Dade, Florida",Wildfires,Wildfire,2025-07-11,2025,7,25.618717,-80.726917,https://irwin.doi.gov/observer/
-EONET_14285,Iceberg B22I,Sea and Lake Ice,Ice Event,2025-09-11,2025,9,-71.72,-173.67,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_14285,Iceberg B22I,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-71.16,-175.21,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_14304,Flood in New Zealand 1103381,Floods,Flood,2025-07-10,2025,7,-36.8246517,174.4339345,https://www.gdacs.org/report.aspx?eventtype=FL&eventid=1103381
 EONET_14334,"PALM TREE Wildfire, Broward, Florida",Wildfires,Wildfire,2025-07-10,2025,7,26.3336111,-80.5466667,https://irwin.doi.gov/observer/
 EONET_14293,Wildfire in United States 1024249,Wildfires,Wildfire,2025-07-10,2025,7,38.36037443550063,-109.11870896755288,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1024249
@@ -3046,7 +3058,7 @@ EONET_12800,Wildfire in Ethiopia 1023538,Wildfires,Wildfire,2025-02-21,2025,2,7.
 EONET_12806,Wildfire in Venezuela 1023546,Wildfires,Wildfire,2025-02-21,2025,2,8.877503108012524,-63.2585376692452,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1023546
 EONET_12727,"Comp 05 RX Wildfire, Tuscaloosa, Alabama",Wildfires,Wildfire,2025-02-21,2025,2,33.003833,-87.403333,https://irwin.doi.gov/observer/
 EONET_12734,"LXR Strazulla Rx 0221 Wildfire, Palm Beach, Florida",Wildfires,Wildfire,2025-02-21,2025,2,26.566667,-80.25,https://irwin.doi.gov/observer/
-EONET_12716,Iceberg A85,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-70.0,-54.74,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_12716,Iceberg A85,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-69.44,-55.01,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_12717,Iceberg D37,Sea and Lake Ice,Ice Event,2025-02-21,2025,2,-69.22,36.34,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_12711,Wildfire in Sudan 1023519,Wildfires,Wildfire,2025-02-20,2025,2,7.217614694615023,29.97627173054393,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1023519
 EONET_12722,Wildfire in Ethiopia 1023525,Wildfires,Wildfire,2025-02-20,2025,2,8.17501269597591,33.65861944468327,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1023525
@@ -5508,8 +5520,8 @@ EONET_10415,Wildfire in Angola 1021606,Wildfires,Wildfire,2024-08-15,2024,8,-16.
 EONET_10416,Wildfire in Angola 1021607,Wildfires,Wildfire,2024-08-15,2024,8,-11.560017374089895,18.430516955142163,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1021607
 EONET_10417,Wildfire in The Democratic Republic of Congo 1021608,Wildfires,Wildfire,2024-08-15,2024,8,-6.768012086849946,21.674647093477933,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1021608
 EONET_10418,Wildfire in Angola 1021609,Wildfires,Wildfire,2024-08-15,2024,8,-8.548102832918348,17.353484112894797,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1021609
-EONET_10212,Iceberg B22F,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-71.31,-173.77,https://usicecenter.gov/pub/Iceberg_Tabular.csv
-EONET_10213,Iceberg B22G,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-70.25,-160.55,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_10212,Iceberg B22F,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-70.81,-174.64,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_10213,Iceberg B22G,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-70.09,-159.26,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_10104,"Bertha Hill Wildfire, Crook, Wyoming",Wildfires,Wildfire,2024-08-14,2024,8,44.6011111,-105.0452778,https://irwin.doi.gov/observer/
 EONET_10155,Wildfire in The Democratic Republic of Congo 1021370,Wildfires,Wildfire,2024-08-14,2024,8,-9.459371727384466,24.766514565101595,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1021370
 EONET_10156,Wildfire in Angola 1021371,Wildfires,Wildfire,2024-08-14,2024,8,-17.21408376205333,20.415381551965385,https://www.gdacs.org/report.aspx?eventtype=WF&eventid=1021371
@@ -8820,7 +8832,7 @@ EONET_7909,"Popple Fuzz Wildfire, Burnett, Wisconsin",Wildfires,Wildfire,2024-05
 EONET_7910,"CEMENT Wildfire, Valencia, New Mexico",Wildfires,Wildfire,2024-05-24,2024,5,34.687,-106.77638,https://irwin.doi.gov/observer/
 EONET_7911,"Beach MF Wildfire, Lane, Oregon",Wildfires,Wildfire,2024-05-24,2024,5,43.688885,-122.278258,https://irwin.doi.gov/observer/
 EONET_7912,"Cotton Wood 1 - Custer Wildfire, Custer, Montana",Wildfires,Wildfire,2024-05-24,2024,5,46.0038,-105.05678,https://irwin.doi.gov/observer/
-EONET_6523,Iceberg A83,Sea and Lake Ice,Ice Event,2025-09-26,2025,9,-70.53,-46.21,https://earthobservatory.nasa.gov/images/152848/antarctic-ice-shelf-spawns-iceberg-a-83
+EONET_6523,Iceberg A83,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-70.12,-48.39,https://earthobservatory.nasa.gov/images/152848/antarctic-ice-shelf-spawns-iceberg-a-83
 EONET_6639,"Whakaari/White Island Volcano, New Zealand",Volcanoes,Volcano,2024-05-24,2024,5,-37.52,177.18,https://volcano.si.edu/volcano.cfm?vn=241040
 EONET_7913,"Fourmile Wildfire, Archuleta, Colorado",Wildfires,Wildfire,2024-05-23,2024,5,37.32395,-107.055633,https://irwin.doi.gov/observer/
 EONET_7914,"Dotbug Wildfire, Pinal, Arizona",Wildfires,Wildfire,2024-05-23,2024,5,32.737,-111.121,https://irwin.doi.gov/observer/
@@ -9083,7 +9095,7 @@ EONET_8551,"Little Yamsay Wildfire, Klamath, Oregon",Wildfires,Wildfire,2024-04-
 EONET_8210,"Range Wildfire, Pinal, Arizona",Wildfires,Wildfire,2024-04-20,2024,4,33.106,-111.369,https://irwin.doi.gov/observer/
 EONET_8211,"Mile Marker 32 Wildfire, Kenedy, Texas",Wildfires,Wildfire,2024-04-19,2024,4,27.069731,-97.381439,https://irwin.doi.gov/observer/
 EONET_8418,"Parces Rd Wildfire, Forrest, Mississippi",Wildfires,Wildfire,2024-04-19,2024,4,31.103562,-89.242265,https://irwin.doi.gov/observer/
-EONET_6510,Iceberg D33C,Sea and Lake Ice,Ice Event,2025-09-18,2025,9,-67.39,-58.3,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_6510,Iceberg D33C,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-66.61,-58.34,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_8785,"RX WEST LOWMAN Wildfire, Boise, Idaho",Wildfires,Wildfire,2024-04-18,2024,4,44.08256,-115.5997,https://irwin.doi.gov/observer/
 EONET_8677,"ANF Boykin Spring C88 RX Wildfire, Jasper, Texas",Wildfires,Wildfire,2024-04-17,2024,4,31.044331,-94.283295,https://irwin.doi.gov/observer/
 EONET_8417,"RANGE 127 Wildfire, El Paso, Colorado",Wildfires,Wildfire,2024-04-16,2024,4,38.5818,-104.821,https://irwin.doi.gov/observer/
@@ -9224,7 +9236,7 @@ EONET_6483,"Erta Ale Volcano, Ethiopia",Volcanoes,Volcano,2024-01-23,2024,1,13.6
 EONET_6583,"Dry Prong Wildfire, Perry, Mississippi",Wildfires,Wildfire,2024-01-21,2024,1,31.158833,-89.131167,https://irwin.doi.gov/observer/
 EONET_6473,Tropical Cyclone Anggrek,Severe Storms,Storm,2024-01-31,2024,1,-32.4,82.8,https://www.metoc.navy.mil/jtwc/products/sh0624.tcw
 EONET_6472,Tropical Cyclone Belal,Severe Storms,Storm,2024-01-19,2024,1,-23.3,64.6,https://www.metoc.navy.mil/jtwc/products/sh0524.tcw
-EONET_6474,Iceberg D35,Sea and Lake Ice,Ice Event,2025-09-26,2025,9,-68.69,-40.24,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_6474,Iceberg D35,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-68.54,-41.71,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_6469,Tropical Cyclone Alvaro,Severe Storms,Storm,2024-01-04,2024,1,-26.3,54.2,https://www.metoc.navy.mil/jtwc/products/sh0424.tcw
 EONET_6471,"Heard Volcano, Australia",Volcanoes,Volcano,2023-12-29,2023,12,-53.106,73.513,https://volcano.si.edu/volcano.cfm?vn=234010
 EONET_6470,"Lewotobi Volcano, Indonesia",Volcanoes,Volcano,2023-12-28,2023,12,-8.542,122.775,https://earthobservatory.nasa.gov/images/153549/mount-lewotobi-laki-laki-spews-ash
@@ -9288,7 +9300,7 @@ EONET_6567,"QUARRY Wildfire, Tuolumne, California",Wildfires,Wildfire,2023-09-11
 EONET_6425,"Kilauea Volcano, Hawaii",Volcanoes,Volcano,2023-09-10,2023,9,19.421,-155.287,https://volcano.si.edu/volcano.cfm?vn=332010
 EONET_6550,"Cowan Wildfire, Baylor, Texas",Wildfires,Wildfire,2023-09-08,2023,9,33.61882463,-99.06793628,https://irwin.doi.gov/observer/
 EONET_6423,Iceberg D33A,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-66.59,-57.21,https://usicecenter.gov/pub/Iceberg_Tabular.csv
-EONET_6424,Iceberg D33B,Sea and Lake Ice,Ice Event,2025-09-26,2025,9,-70.3,-46.34,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_6424,Iceberg D33B,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-69.88,-48.35,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_6421,Hurricane Margot,Severe Storms,Storm,2023-09-17,2023,9,34.6,-42.4,http://www.gdacs.org/report.aspx?eventid=1001009&episodeid=4&eventtype=TC
 EONET_6419,Tropical Storm Yun-Yeung,Severe Storms,Storm,2023-09-08,2023,9,34.5,138.3,http://www.gdacs.org/report.aspx?eventid=1001007&episodeid=5&eventtype=TC
 EONET_6420,Hurricane Lee,Severe Storms,Storm,2023-09-17,2023,9,48.0,-62.0,https://earthobservatory.nasa.gov/images/151822/hurricane-lee-traverses-the-warm-atlantic
@@ -9489,7 +9501,7 @@ EONET_6293,"Villarica Volcano, Chile",Volcanoes,Volcano,2022-10-25,2022,10,-39.4
 EONET_6296,"Krakatau Volcano, Indonesia",Volcanoes,Volcano,2022-10-25,2022,10,-6.102,105.423,https://volcano.si.edu/volcano.cfm?vn=262000
 EONET_6287,Tropical Cyclone Sitrang,Severe Storms,Storm,2022-10-24,2022,10,24.1,91.0,https://www.gdacs.org/Cyclones/report.aspx?eventid=1000941&eventtype=TC
 EONET_6290,"Bezymianny Volcano, Russia",Volcanoes,Volcano,2022-10-23,2022,10,55.972,160.595,http://volcano.si.edu/volcano.cfm?vn=300250
-EONET_6288,Iceberg D32,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-68.6,-33.3,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_6288,Iceberg D32,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-68.9,-34.27,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_6291,"Cotopaxi Volcano, Ecuador",Volcanoes,Volcano,2022-10-21,2022,10,-0.677,-78.436,https://volcano.si.edu/volcano.cfm?vn=352050
 EONET_6285,Hurricane Roslyn,Severe Storms,Storm,2022-10-24,2022,10,25.2,-102.0,https://www.gdacs.org/Cyclones/report.aspx?eventid=1000940&eventtype=TC
 EONET_6292,"Langila Volcano, Papua New Guinea",Volcanoes,Volcano,2022-10-20,2022,10,-5.525,148.42,https://volcano.si.edu/volcano.cfm?vn=252010
@@ -9695,7 +9707,7 @@ EONET_6082,Pipeline Fire,Wildfires,Wildfire,2022-06-12,2022,6,35.282,-111.681,ht
 EONET_6087,Contreras Fire ,Wildfires,Wildfire,2022-06-11,2022,6,31.849,-111.574,http://inciweb.nwcg.gov/incident/8154/
 EONET_8569,"Fish Wildfire, Greenlee, Arizona",Wildfires,Wildfire,2022-06-10,2022,6,33.63276,-109.3973,https://irwin.doi.gov/observer/
 EONET_6088,Fish Fire,Wildfires,Wildfire,2022-06-10,2022,6,33.635,-109.393,http://inciweb.nwcg.gov/incident/8160/
-EONET_6080,Iceberg A74A,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-55.91,-34.02,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_6080,Iceberg A74A,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-55.48,-33.4,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_6081,Iceberg A74B,Sea and Lake Ice,Ice Event,2024-04-12,2024,4,-63.35,-53.52,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_6078,Midnight Fire,Wildfires,Wildfire,2022-06-09,2022,6,36.45,-106.224,http://inciweb.nwcg.gov/incident/8147/
 EONET_6076,Deer Creek Fire,Wildfires,Wildfire,2022-06-08,2022,6,31.608,-109.001,http://inciweb.nwcg.gov/incident/8145/
@@ -9717,7 +9729,7 @@ EONET_6054,Tropical Cyclone Karim,Severe Storms,Storm,2022-05-11,2022,5,-19.1,95
 EONET_6055,Tropical Cyclone Asani,Severe Storms,Storm,2022-05-11,2022,5,16.0,81.0,https://www.gdacs.org/Cyclones/report.aspx?eventid=1000883&eventtype=TC
 EONET_6052,"Gaua Volcano, Vanuatu",Volcanoes,Volcano,2022-05-03,2022,5,-14.27,167.5,https://volcano.si.edu/volcano.cfm?vn=257020
 EONET_6066,Bear Trap Fire,Wildfires,Wildfire,2022-05-01,2022,5,33.85,-107.533,http://inciweb.nwcg.gov/incident/8093/
-EONET_6051,Iceberg C39,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-66.56,77.76,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_6051,Iceberg C39,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-67.03,77.22,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_6053,"Karymsky Volcano, Russia",Volcanoes,Volcano,2022-04-28,2022,4,54.049,159.443,https://volcano.si.edu/volcano.cfm?vn=300130
 EONET_6050,Tropical Cyclone Jasmine,Severe Storms,Storm,2022-04-27,2022,4,-23.8,47.9,https://www.gdacs.org/Cyclones/report.aspx?eventid=1000881&eventtype=TC
 EONET_6064,Cerro Pelado Fire,Wildfires,Wildfire,2022-04-22,2022,4,35.775,-106.584,http://inciweb.nwcg.gov/incident/8075/
@@ -9875,7 +9887,7 @@ EONET_5893,Tropical Cyclone Marty,Severe Storms,Storm,2021-08-24,2021,8,20.5,-11
 EONET_5890,Wildfire - NE of Podgorica - Montenegro,Wildfires,Wildfire,2021-08-22,2021,8,42.635352272,19.368286586,http://emops.pdc.org/emops/?hazard_id=129158
 EONET_5897,"White Island Volcano, New Zealand",Volcanoes,Volcano,2021-08-22,2021,8,-37.52,177.18,http://volcano.si.edu/volcano.cfm?vn=241040
 EONET_5888,"Wildfire - E of Mesa, Arizona - United States",Wildfires,Wildfire,2021-08-20,2021,8,33.416821311,-110.859687743,http://emops.pdc.org/emops/?hazard_id=129071
-EONET_5906,Iceberg A77,Sea and Lake Ice,Ice Event,2025-10-09,2025,10,-57.66,-46.12,https://usicecenter.gov/pub/Iceberg_Tabular.csv
+EONET_5906,Iceberg A77,Sea and Lake Ice,Ice Event,2025-10-16,2025,10,-57.03,-44.45,https://usicecenter.gov/pub/Iceberg_Tabular.csv
 EONET_5884,"Wildfire - N of Santa Rosa, California - United States",Wildfires,Wildfire,2021-08-18,2021,8,38.924589754,-122.604087947,http://emops.pdc.org/emops/?hazard_id=128937
 EONET_5887,French Fire (CA),Wildfires,Wildfire,2021-08-18,2021,8,35.685,-118.55,http://inciweb.nwcg.gov/incident/7813/
 EONET_5879,"Wildfire - E of Reggio di Calabria, Calabria - Italy",Wildfires,Wildfire,2021-08-18,2021,8,38.092952272,15.91418569,http://emops.pdc.org/emops/?hazard_id=128854
@@ -9987,15 +9999,3 @@ EONET_5760,"Wildfire - Trinity County (McFarland Fire), California, United State
 EONET_5786,Skyline Ridge Complex Fire,Wildfires,Wildfire,2021-08-01,2021,8,42.901,-123.111,http://inciweb.nwcg.gov/incident/7762/
 EONET_5763,Taylor Fire,Wildfires,Wildfire,2021-08-01,2021,8,47.495,-109.638,http://inciweb.nwcg.gov/incident/7768/
 EONET_5785,Antelope Fire,Wildfires,Wildfire,2021-08-01,2021,8,41.521,-121.919,http://inciweb.nwcg.gov/incident/7764/
-EONET_5735,"Wildfire -  Waimea, Hawaii County, Hawaii",Wildfires,Wildfire,2021-08-01,2021,8,19.95018,-155.61588,http://emops.pdc.org/emops/?hazard_id=127585
-EONET_5744,"Wildfire MB-NO124, Manitoba, Canada",Wildfires,Wildfire,2021-08-01,2021,8,56.9119,-96.3331,http://www.gov.mb.ca/sd/fire/Fire-Statistic/2021/MBFIRE21.txt
-EONET_5745,"Wildfire MB-NO125, Manitoba, Canada",Wildfires,Wildfire,2021-08-01,2021,8,57.1783,-96.3789,http://www.gov.mb.ca/sd/fire/Fire-Statistic/2021/MBFIRE21.txt
-EONET_5746,"Wildfire MB-NO126, Manitoba, Canada",Wildfires,Wildfire,2021-08-01,2021,8,57.2778,-96.8731,http://www.gov.mb.ca/sd/fire/Fire-Statistic/2021/MBFIRE21.txt
-EONET_5765,"Wildfire MB-NO129, Manitoba, Canada",Wildfires,Wildfire,2021-08-01,2021,8,56.7183,-100.3767,http://www.gov.mb.ca/sd/fire/Fire-Statistic/2021/MBFIRE21.txt
-EONET_5797,McCash Fire,Wildfires,Wildfire,2021-07-31,2021,7,41.564,-123.404,http://inciweb.nwcg.gov/incident/7757/
-EONET_5794,Tiltill Fire,Wildfires,Wildfire,2021-07-31,2021,7,37.969,-119.723,http://inciweb.nwcg.gov/incident/7761/
-EONET_5757,Boulder 2700 Fire ,Wildfires,Wildfire,2021-07-31,2021,7,47.764,-113.996,http://inciweb.nwcg.gov/incident/7754/
-EONET_5839,"Wildfire MB-NO121, Manitoba, Canada",Wildfires,Wildfire,2021-07-31,2021,7,57.4306,-95.0492,http://www.gov.mb.ca/sd/fire/Fire-Statistic/2021/MBFIRE21.txt
-EONET_5741,Hurricane Hilda,Severe Storms,Storm,2021-08-06,2021,8,22.9,-133.7,https://www.gdacs.org/Cyclones/report.aspx?eventid=1000803&eventtype=TC
-EONET_5742,Monument Fire,Wildfires,Wildfire,2021-07-30,2021,7,40.752,-123.337,http://inciweb.nwcg.gov/incident/7750/
-EONET_5732,"Wildfire - Qoubaiyat, Lebanon",Wildfires,Wildfire,2021-07-30,2021,7,34.5457,36.31338,http://emops.pdc.org/emops/?hazard_id=127500
