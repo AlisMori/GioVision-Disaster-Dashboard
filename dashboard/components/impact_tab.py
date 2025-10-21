@@ -216,20 +216,76 @@ def render():
             ["Country", "Disaster Type", "Time Period"]
         )
 
+        st.markdown("---")
+
         if comparison_mode == "Country":
-            fig_comp = px.box(filtered_df, x="Country", y=metric_col,
-                              color="Country",
-                              title=f"Distribution of {selected_metric} by Country")
+            st.write(f"#### Top 20 Countries by {selected_metric}")
+
+            comp_df = (
+                filtered_df.groupby("Country", as_index=False)[metric_col]
+                .sum()
+                .sort_values(metric_col, ascending=False)
+            )
+
+            # Limit to top 20 for readability
+            top_n = 20
+            display_df = comp_df.head(top_n)
+            others_sum = comp_df.iloc[top_n:][metric_col].sum()
+            display_df = pd.concat([
+                display_df,
+                pd.DataFrame({"Country": ["Other"], metric_col: [others_sum]})
+            ], ignore_index=True)
+
+            fig_comp = px.bar(
+                display_df,
+                x="Country",
+                y=metric_col,
+                color=metric_col,
+                color_continuous_scale="plasma",
+                text_auto=".2s",
+                title=f"Top {top_n} Countries by {selected_metric}",
+            )
+            fig_comp.update_layout(
+                xaxis_tickangle=-45,
+                height=600,
+                margin=dict(l=20, r=20, t=60, b=80),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                coloraxis_colorbar=dict(title=selected_metric),
+            )
+            st.plotly_chart(fig_comp, use_container_width=True)
+
         elif comparison_mode == "Disaster Type":
-            fig_comp = px.box(filtered_df, x="Disaster Type", y=metric_col,
-                              color="Disaster Type",
-                              title=f"Distribution of {selected_metric} by Disaster Type")
-        else:
+            st.write(f"#### {selected_metric} by Disaster Type")
+            comp_df = filtered_df.groupby("Disaster Type", as_index=False)[metric_col].sum()
+            fig_comp = px.bar(
+                comp_df,
+                x="Disaster Type",
+                y=metric_col,
+                color="Disaster Type",
+                text_auto=".2s",
+                title=f"{selected_metric} Distribution by Disaster Type",
+            )
+            fig_comp.update_layout(
+                xaxis_tickangle=-30,
+                height=500,
+                showlegend=False,
+                margin=dict(l=20, r=20, t=60, b=80),
+            )
+            st.plotly_chart(fig_comp, use_container_width=True)
+
+        else:  # Time Period
+            st.write(f"#### {selected_metric} Over Time")
             comp_df = filtered_df.groupby("Start Year", as_index=False)[metric_col].sum()
-            fig_comp = px.bar(comp_df, x="Start Year", y=metric_col,
-                              color=metric_col, color_continuous_scale="Plasma",
-                              title=f"{selected_metric} per Year")
-        st.plotly_chart(fig_comp, use_container_width=True)
+            fig_comp = px.area(
+                comp_df,
+                x="Start Year",
+                y=metric_col,
+                color_discrete_sequence=["#ff6600"],
+                title=f"{selected_metric} Over Time",
+            )
+            fig_comp.update_traces(mode="lines+markers", fill="tozeroy", line=dict(width=3))
+            st.plotly_chart(fig_comp, use_container_width=True)
 
         # ===== 6️⃣ Country-Level Analysis =====
         st.subheader("🏳️ Country-Level Analysis")
