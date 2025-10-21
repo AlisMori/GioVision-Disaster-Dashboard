@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path:
 
 
 import streamlit as st
-from dashboard.components import overview_tab, trends_tab, comparisons_tab, alerts_tab
+from dashboard.components import overview_tab, trends_tab, comparisons_tab, alerts_tab, impact_tab
 from src.utils import style_config
 
 # ----------------------------
@@ -39,7 +39,7 @@ st.set_page_config(
 style_config.apply_streamlit_style()
 
 # 2️⃣ Load static CSS for layout / formatting tweaks
-css_path = os.path.join("dashboard", "assets", "css", "style.css")
+css_path = os.path.join("dashboard", "assets", "style.css")
 if os.path.exists(css_path):
     with open(css_path) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -58,7 +58,7 @@ st.caption("ICT305 – Data Visualisation and Simulation | Murdoch University, 2
 st.sidebar.header("Navigation")
 page = st.sidebar.radio(
     "Go to",
-    ["Overview", "Trends", "Comparisons", "Alerts"]
+    ["Overview", "Impact of Natural Disasters", "Trends", "Comparisons", "Alerts"]
 )
 
 # ----------------------------
@@ -66,6 +66,8 @@ page = st.sidebar.radio(
 # ----------------------------
 if page == "Overview":
     overview_tab.render()
+elif page == "Impact of Natural Disasters":
+    impact_tab.render()
 elif page == "Trends":
     trends_tab.render()
 elif page == "Comparisons":
