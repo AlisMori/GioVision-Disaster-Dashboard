@@ -1,5 +1,6 @@
 """
-trends_tab.py
+previously known as : trends_tab.py
+New name : Impact of Natural Disasters
 -------------
 Displays visualizations of historical trends and time-based analyses.
 """
@@ -9,8 +10,8 @@ import pandas as pd
 
 def render():
     """Placeholder for the Trends tab."""
-    st.header("Trends")
-    st.write("This tab will show disaster frequency and severity trends over time.")
+    st.header("Impact of Natural Disasters")
+    st.write("This tab will show impact of disaster, their frequency and severity trends over time.")
 
     # Placeholder chart
     df = pd.DataFrame({

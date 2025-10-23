@@ -1,5 +1,6 @@
 """
-comparisons_tab.py
+Previously called: comparisons_tab.py
+New name: Disaster Analysis tab
 ------------------
 Displays comparisons between countries, disaster types, or time periods.
 """
@@ -9,7 +10,7 @@ import pandas as pd
 
 def render():
     """Placeholder for the Comparisons tab."""
-    st.header("⚖️ Comparisons")
+    st.header("⚖️ Disaster Analysis")
     st.write("This section will compare disasters by country or category.")
 
     # Placeholder data
