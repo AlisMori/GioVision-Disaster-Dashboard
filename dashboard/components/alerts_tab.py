@@ -164,5 +164,82 @@ def render():
             legend_title_text="Alert Level",
             height=400
         )
-
     st.plotly_chart(fig, use_container_width=True)
+
+    # ---- TIME SERIES ANALYSIS SECTION ----
+    st.markdown("---")
+    st.subheader("📈 Alerts Timeline (Last 30 Days)")
+
+    # Convert dates
+    filtered_df["Start Date"] = pd.to_datetime(filtered_df["Start Date"])
+
+    # Filter to last 30 days
+    thirty_days_ago = pd.Timestamp.utcnow() - pd.Timedelta(days=30)
+    recent = filtered_df[filtered_df["Start Date"] >= thirty_days_ago]
+
+    if recent.empty:
+        st.info("No alerts recorded in the last 30 days.")
+        return
+
+    # Create a daily date column
+    recent["Date"] = recent["Start Date"].dt.date
+
+    # Choose grouping mode
+    view_mode = st.radio("Group timeline by:", ["Alert Level", "Disaster Type"], horizontal=True)
+
+    alert_colors = {"Red": "red", "Orange": "orange", "Green": "green"}
+
+    # ---- GROUP & COUNT ----
+    if view_mode == "Alert Level":
+        grouped = (
+            recent.groupby(["Date", "Alert Level"])
+            .agg(
+                Countries=("Country", lambda x: ", ".join(sorted(set(x)))),
+                DisasterTypes=("Disaster Type", lambda x: ", ".join(sorted(set(x)))),
+                EventNames=("Event Name", lambda x: ", ".join(sorted(set(x))))
+            )
+            .reset_index()
+        )
+        grouped["Count"] = grouped.groupby(["Date", "Alert Level"])["Countries"].transform("size")
+
+        fig2 = px.line(
+            grouped,
+            x="Date",
+            y="Count",
+            color="Alert Level",
+            markers=True,
+            color_discrete_map=alert_colors,
+            hover_data=["Countries", "DisasterTypes", "EventNames"]
+        )
+
+    else:  # Group by Disaster Type
+        grouped = (
+            recent.groupby(["Date", "Disaster Type"])
+            .agg(
+                Countries=("Country", lambda x: ", ".join(sorted(set(x)))),
+                AlertLevels=("Alert Level", lambda x: ", ".join(sorted(set(x)))),
+                EventNames=("Event Name", lambda x: ", ".join(sorted(set(x))))
+            )
+            .reset_index()
+        )
+        grouped["Count"] = grouped.groupby(["Date", "Disaster Type"])["Countries"].transform("size")
+
+        fig2 = px.line(
+            grouped,
+            x="Date",
+            y="Count",
+            color="Disaster Type",
+            markers=True,
+            hover_data=["Countries", "AlertLevels", "EventNames"]
+        )
+
+    # ---- STYLE ----
+    fig2.update_layout(
+        title="Trend of Alerts in the Last 30 Days",
+        xaxis_title="Date",
+        yaxis_title="Number of Alerts",
+        legend_title=view_mode,
+        hovermode="x unified"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
