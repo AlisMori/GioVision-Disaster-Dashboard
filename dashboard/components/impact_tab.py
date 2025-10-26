@@ -21,6 +21,7 @@ def load_emdat_data():
         "data/processed/emdat_cleaned.csv",
         "data/emdat_cleaned.csv",
         "dashboard/data/emdat_cleaned.csv",
+        "../data/processed/emdat_cleaned.csv",
     ]
 
     df = None
