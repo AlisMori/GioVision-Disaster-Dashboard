@@ -140,11 +140,11 @@ def render():
     st.markdown("""
 We use a **fixed 2024 LDC list of 44 countries** grouped by UN regions.  
 Below we show the **Top-10 countries by people affected in 2024** (from EMDAT).  
-Selecting a region filters the chart to that region **only**. If fewer than 10 countries in that region recorded events in 2024, fewer bars will be shown (no cross-region backfill).
+Selecting a region filters the chart to that region **only**. If fewer than 10 countries in that region recorded events in 2024, fewer bars will be shown.
     """)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    
+
     # ===== Load data =====
     df = load_emdat()
     if df is None:
@@ -280,3 +280,6 @@ Selecting a region filters the chart to that region **only**. If fewer than 10 c
 • United Nations — List of Least Developed Countries (as of December 2024)  
   https://www.un.org/development/desa/dpad/least-developed-country-category.html
 """)
+
+    st.markdown("---")
+    st.caption("Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED) ")
