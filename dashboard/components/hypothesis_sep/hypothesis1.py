@@ -8,6 +8,18 @@ import streamlit as st
 import plotly.express as px
 
 # ===========================
+# THEME HELPERS
+# ===========================
+def _anchor(id_: str):
+    st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
+
+def section_title(text: str):
+    st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
+
+def subsection_title(text: str):
+    st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
+
+# ===========================
 # CONFIG
 # ===========================
 EMDAT_PATHS = [
@@ -96,9 +108,9 @@ def _map_to_macro_region(label: str) -> Optional[str]:
         return "Asia"
     if "oceania" in s or "pacific" in s:
         return "Oceania"
-    if "america" in s:  # matches "Americas", "Latin America", "South America", "North America"
+    if "america" in s:
         return "Americas"
-    return None  # e.g., "Europe", "Other", etc.
+    return None
 
 def _country_to_macro_region(df: pd.DataFrame) -> Optional[Dict[str, str]]:
     """
@@ -118,7 +130,6 @@ def _country_to_macro_region(df: pd.DataFrame) -> Optional[Dict[str, str]]:
     tmp = tmp.dropna(subset=[col])
     if tmp.empty:
         return None
-    # prefer the most frequent mapping per country if multiple
     mapping = (
         tmp.groupby("Country_norm")[col]
            .agg(lambda s: s.value_counts().index[0])
@@ -130,25 +141,23 @@ def _country_to_macro_region(df: pd.DataFrame) -> Optional[Dict[str, str]]:
 # MAIN RENDERER (2024, region-driven)
 # ===========================
 def render():
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### **Hypothesis 1**", unsafe_allow_html=True)
+    _anchor("sec-h1-overview")
+    section_title("Hypothesis 1")
 
-    st.markdown("""
-> A higher number of people from **Least Developed Countries (LDCs)** are affected by natural disasters compared to developed nations.
-""")
-
-    st.markdown("""
-We use a **fixed 2024 LDC list of 44 countries** grouped by UN regions.  
-Below we show the **Top-10 countries by people affected in 2024** (from EMDAT).  
-Selecting a region filters the chart to that region **only**. If fewer than 10 countries in that region recorded events in 2024, fewer bars will be shown.
-    """)
-
+    st.markdown(
+        "> A higher number of people from **Least Developed Countries (LDCs)** are affected by natural disasters "
+        "compared to developed nations."
+    )
+    st.markdown(
+        "We use a **fixed 2024 LDC list of 44 countries** grouped by UN regions. Below we show the **Top-10 countries** "
+        "by people affected in 2024 (from EM-DAT). Selecting a region filters the chart strictly to that region."
+    )
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ===== Load data =====
     df = load_emdat()
     if df is None:
-        st.warning("❌ Could not load EMDAT file. Please check data location.")
+        st.warning("Could not load EMDAT file. Please check data location.")
         return
 
     # ===== Ensure Total Affected =====
@@ -165,18 +174,18 @@ Selecting a region filters the chart to that region **only**. If fewer than 10 c
     elif "Start Year" in df.columns:
         df["Year"] = pd.to_numeric(df["Start Year"], errors="coerce")
     else:
-        st.warning("❌ EMDAT needs 'Event Date' or 'Start Year' to filter by year.")
+        st.warning("EM-DAT needs 'Event Date' or 'Start Year' to filter by year.")
         return
 
     if "Country" not in df.columns:
-        st.warning("❌ EMDAT missing 'Country' column.")
+        st.warning("EM-DAT missing 'Country' column.")
         return
     df["Country_norm"] = df["Country"].astype(str).apply(normalize_country_name)
 
     # ===== Filter to TARGET_YEAR (2024) =====
     df_2024 = df[df["Year"] == TARGET_YEAR].copy()
     if df_2024.empty:
-        st.warning("No records found in EMDAT for the year 2024.")
+        st.warning("No records found in EM-DAT for the year 2024.")
         return
 
     # ===== LDCs (2024) =====
@@ -253,7 +262,7 @@ Selecting a region filters the chart to that region **only**. If fewer than 10 c
 
     # ===== Right-side: LDC list (per-line, scrollable, region-aware) =====
     with col2:
-        st.markdown(f"### LDC Countries (2024) — {region}")
+        subsection_title(f"LDC Countries (2024) — {region}")
         ldc_df = build_ldc_dataframe_2024()  # rebuild to ensure clean sort independent of mapping
         if region == "All":
             list_df = ldc_df.sort_values(["Region", "Name"])
@@ -274,12 +283,12 @@ Selecting a region filters the chart to that region **only**. If fewer than 10 c
         st.caption("Source: United Nations — List of Least Developed Countries (2024).")
 
     # ===== References =====
-    st.info("""
-**References**
-
-• United Nations — List of Least Developed Countries (as of December 2024)  
-  https://www.un.org/development/desa/dpad/least-developed-country-category.html
-""")
+    st.markdown("---")
+    subsection_title("References")
+    st.markdown(
+        "- United Nations — List of Least Developed Countries (as of December 2024)  \n"
+        "  https://www.un.org/development/desa/dpad/least-developed-country-category.html"
+    )
 
     st.markdown("---")
-    st.caption("Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED) ")
+    st.caption("Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")
