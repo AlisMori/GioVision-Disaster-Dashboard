@@ -402,6 +402,7 @@ def render():
         st.caption("Hover a country to see total events. All selectors here are constrained to valid choices.")
 
     # 2) Top-10 frequency
+    # 2) Top-10 frequency
     st.markdown("---")
     _anchor("sec-da-top10")
     section_title("Top-10 Disasters by Frequency")
@@ -409,12 +410,14 @@ def render():
     with st.expander("Selections (this visual)", expanded=True):
         c1, c2 = st.columns(2)
         with c1:
-            years2 = st.slider("Year range", min_year, max_year, value=st.session_state["glob_years"], key="years_2")
+            years2 = st.slider("Year range", min_year, max_year,
+                            value=st.session_state["glob_years"], key="years_2")
             region_opts_2 = _available_regions(df, years2)
             region2 = st.selectbox(
                 "Region",
                 options=region_opts_2,
-                index=region_opts_2.index(_coerce_choice(st.session_state["glob_region"], region_opts_2, 0)),
+                index=region_opts_2.index(_coerce_choice(
+                    st.session_state["glob_region"], region_opts_2, 0)),
                 key="region_2",
             )
         with c2:
@@ -422,13 +425,15 @@ def render():
             country2 = st.selectbox(
                 "Country",
                 options=country_opts_2,
-                index=country_opts_2.index(_coerce_choice(st.session_state["glob_country"], country_opts_2, 0)),
+                index=country_opts_2.index(_coerce_choice(
+                    st.session_state["glob_country"], country_opts_2, 0)),
                 key="country_2",
             )
-        chart2 = st.radio("Chart", ["Bar", "Pie"], horizontal=True, key="chart_2")
 
     d2 = _apply_scope(df, years2, region2, country2)
-    freq = d2.groupby("Disaster Type", as_index=False)["DisNo."].count().rename(columns={"DisNo.": "Count"})
+    freq = (d2.groupby("Disaster Type", as_index=False)["DisNo."]
+        .count()
+        .rename(columns={"DisNo.": "Count"}))
     freq = freq.sort_values("Count", ascending=False)
 
     if freq.empty:
@@ -437,11 +442,18 @@ def render():
         if len(freq) > 10:
             top10 = freq.head(10).copy()
             others_count = int(freq["Count"].iloc[10:].sum())
-            top10 = pd.concat([top10, pd.DataFrame({"Disaster Type": ["Others"], "Count": [others_count]})], ignore_index=True)
+            top10 = pd.concat([
+                top10,
+                pd.DataFrame({"Disaster Type": ["Others"], "Count": [others_count]})
+            ], ignore_index=True)
         else:
             top10 = freq
 
-        if chart2 == "Bar":
+        # === TABS ===
+        tab_bar, tab_pie = st.tabs(["Bar Chart", "Pie Chart"])
+
+        # --- BAR CHART ---
+        with tab_bar:
             fig_bar = px.bar(
                 top10, x="Count", y="Disaster Type", orientation="h",
                 color="Disaster Type", color_discrete_sequence=TYPE_PALETTE, text="Count"
@@ -451,9 +463,15 @@ def render():
                 bargap=0.25,
                 showlegend=False
             )
-            fig_bar.update_traces(textposition="outside", cliponaxis=False, hovertemplate="<b>%{y}</b><br>Count: %{x}<extra></extra>")
+            fig_bar.update_traces(
+                textposition="outside",
+                cliponaxis=False,
+                hovertemplate="<b>%{y}</b><br>Count: %{x}<extra></extra>",
+            )
             st.plotly_chart(fig_bar, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
-        else:
+
+        # --- PIE CHART ---
+        with tab_pie:
             fig_pie = px.pie(
                 top10, names="Disaster Type", values="Count", hole=0.3,
                 color="Disaster Type", color_discrete_sequence=TYPE_PALETTE
@@ -579,25 +597,41 @@ def render():
     if year_counts.empty:
         st.info("No data for the selected filters.")
     else:
-        # Ensure continuous years in the selected range (optional: fill zeros)
+        # Ensure continuous years in the selected range (fill zeros)
         full_years = pd.DataFrame({"Year": list(range(yearsY[0], yearsY[1] + 1))})
         year_counts = full_years.merge(year_counts, on="Year", how="left").fillna({"Count": 0})
 
-        fig_year = px.bar(
-            year_counts, x="Year", y="Count",
-            text="Count",
-            color_discrete_sequence=["#2c7fb8"],  # single blue
-        )
-        fig_year.update_traces(textposition="outside", cliponaxis=False)
-        fig_year.update_layout(
-            xaxis_title="Year",
-            yaxis_title="Number of Events",
-            showlegend=False,
-            bargap=0.2,
-            hovermode="x unified",
-        )
-        st.plotly_chart(fig_year, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+        tab_line, tab_bar = st.tabs(["Line Chart", "Bar Chart"])
 
+        with tab_line:
+            fig_year_line = px.line(
+                year_counts, x="Year", y="Count",
+                markers=True,
+                color_discrete_sequence=["#2c7fb8"],  # single blue
+            )
+            fig_year_line.update_layout(
+                xaxis_title="Year",
+                yaxis_title="Number of Events",
+                hovermode="x unified",
+                showlegend=False,
+            )
+            st.plotly_chart(fig_year_line, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+
+        with tab_bar:
+            fig_year_bar = px.bar(
+                year_counts, x="Year", y="Count",
+                text="Count",
+                color_discrete_sequence=["#2c7fb8"],  # single blue
+            )
+            fig_year_bar.update_traces(textposition="outside", cliponaxis=False)
+            fig_year_bar.update_layout(
+                xaxis_title="Year",
+                yaxis_title="Number of Events",
+                showlegend=False,
+                bargap=0.2,
+                hovermode="x unified",
+            )
+            st.plotly_chart(fig_year_bar, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
 
    # 5) Concentration heat & map (density + scatter)
     st.markdown("---")
