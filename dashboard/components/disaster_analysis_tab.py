@@ -314,19 +314,21 @@ def render():
     st.session_state["glob_country"] = country_global
 
     # ---------- Section jump ----------
+# ---------- Section jump ----------
     st.sidebar.markdown("---")
     st.sidebar.subheader("Jump to section")
     anchor_map = {
         "Overview": "sec-da-overview",
         "Map: Total Disasters per Country": "sec-da-map-country",
-        "Top-10 by Frequency": "sec-da-top10",
-        "Stacked Area Timeline": "sec-da-timeline",
-        "Severity Analysis": "sec-da-severity",
-        "Concentration Heat & Map": "sec-da-concentration",
-        "Calendar / Lat-Lon Heat": "sec-da-calendar",
+        "Top-10 Disasters by Frequency": "sec-da-top10",
+        "Stacked Area Timeline (Top-5 + Others)": "sec-da-timeline",
+        "Yearly Distribution (Counts)": "sec-da-year-dist",
+        "Concentration Heat & Map (Historical)": "sec-da-concentration",
+        "Temporal & Spatial Heat": "sec-da-calendar",
     }
     sec_choice = st.sidebar.radio("", list(anchor_map.keys()), index=0)
     st.sidebar.markdown(f"[Go ▶](#{anchor_map[sec_choice]})", unsafe_allow_html=True)
+
 
     # ---------- Overview ----------
     _anchor("sec-da-overview")
