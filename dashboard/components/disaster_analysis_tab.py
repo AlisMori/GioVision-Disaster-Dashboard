@@ -3,18 +3,16 @@ disaster_analysis.py
 --------------------
 Disaster Analysis page using EM-DAT.
 
-Defaults:
-- Scope: Global
-- Time range: 2022–2025 (changeable in the sidebar + per-visual)
-- Dataset: ../data/processed/emdat_cleaned.csv
+Global controls (sidebar):
+- Year range (global)
+- Region (global)
+- Country (global; constrained by Region + Year range)
+- (No Disaster Type in the sidebar by design)
 
-Visuals:
-1) Choropleth: total number of disasters per country (hover + country zoom + type filter)
-2) Top-10 disasters by frequency (Bar / Pie with 'Others' aggregation)
-3) Stacked area timeline of disasters (by Disaster Type, Top-5 + "Others")
-4) Severity analysis (single disaster type; numeric parsing; compare across Countries or Years)
-5) Density map & heatmap: historical concentration (zoomable, type filter, new color scale)
-6) Calendar heatmap (Year–Month) + optional Lat/Lon density heatmap
+Each visual:
+- Defaults to the global controls
+- Local selectors (if any) are constrained to EXISTING values under that visual's scope
+- Changing sidebar controls immediately affects ALL visuals
 
 Style:
 - gv-section-title / gv-subsection-title bars
@@ -26,7 +24,6 @@ from __future__ import annotations
 import os
 import sys
 import math
-import re
 from typing import Tuple, List, Optional
 
 import pandas as pd
@@ -47,28 +44,20 @@ EMDAT_PATHS = [
     "dashboard/data/processed/emdat_cleaned.csv",
 ]
 
-def _first_existing_path(paths: List[str]) -> Optional[str]:
-    for p in paths:
-        try:
-            if os.path.exists(p):
-                return p
-        except Exception:
-            pass
-    return None
-
 DEFAULT_START = 2022
 DEFAULT_END   = 2025
 
 # Palettes
-TYPE_PALETTE = [
-    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-    "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
-]  # more distinct than before
-AREA_TOP5_PALETTE = ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd"]  # for stacked area top5
+BLUE_PALETTE = [
+    "#dceef7", "#b5d7ee", "#8ec0e5", "#67a9dc",
+    "#4192d1", "#2c7fb8", "#1865ab", "#0b4f8a",
+]
+TYPE_PALETTE = BLUE_PALETTE  # use singular blue variations everywhere types are categorical
+AREA_TOP5_PALETTE = ["#2c7fb8", "#4192d1", "#67a9dc", "#8ec0e5", "#0b4f8a"]  # stacked area top5 blues
 OTHERS_COLOR = "#9e9e9e"
 
 INTENSITY_SCALE = "YlOrRd"    # choropleth / calendar
-HEAT_SCALE_MAP  = "Inferno"   # map density heat (new: calmer lows, stronger highs)
+HEAT_SCALE_MAP  = "Inferno"   # map density heat
 HEAT_SCALE_XY   = "Viridis"   # 2D lat/lon heat
 
 REQUIRED_COLS = [
@@ -78,6 +67,24 @@ REQUIRED_COLS = [
     "Total Deaths", "No. Injured", "No. Affected", "No. Homeless",
     "Total Affected", "Total Damage ('000 US$)"
 ]
+
+# Plotly configs
+PLOTLY_CFG = {
+    "displaylogo": False,
+    "modeBarButtonsToRemove": ["lasso2d", "select2d"],
+    "scrollZoom": True,
+}
+# For Bar/Pie: remove zoom/pan tools (keep hover)
+PLOTLY_CFG_NOZOOM = {
+    "displaylogo": False,
+    "scrollZoom": False,
+    "modeBarButtonsToRemove": [
+        "zoom", "pan", "zoomIn2d", "zoomOut2d",
+        "autoScale2d", "resetScale2d",
+        "select2d", "lasso2d",
+        "zoom2d"
+    ],
+}
 
 # =========================
 # THEME HELPERS
@@ -91,17 +98,37 @@ def section_title(text: str):
 def subsection_title(text: str):
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
 
-# Unified Plotly config (hover/zoom on by default)
-PLOTLY_CFG = {"displaylogo": False, "modeBarButtonsToRemove": ["lasso2d","select2d"], "scrollZoom": True}
-
 # =========================
 # DATA LOADING / PREP
 # =========================
+def _first_existing_path(paths: List[str]) -> Optional[str]:
+    for p in paths:
+        try:
+            if os.path.exists(p):
+                return p
+        except Exception:
+            pass
+    return None
+
+def _first_country_only(s: str) -> str:
+    """
+    Return only the epicenter (first) country from a possibly multi-country string.
+    Examples:
+      "China, Japan" -> "China"
+      "Turkey/Syria" -> "Turkey"
+      "France & Spain" -> "France"
+      "Iran and Iraq" -> "Iran"
+    """
+    if not isinstance(s, str) or not s.strip():
+        return "Unknown"
+    s = s.replace(" & ", ",").replace(" and ", ",").replace("/", ",").replace(";", ",")
+    return s.split(",")[0].strip() or "Unknown"
+
 @st.cache_data(show_spinner=False)
 def load_emdat(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
 
-    # Dates / numeric
+    # Dates / numeric parsing
     if "Event Date" in df.columns:
         df["Event Date"] = pd.to_datetime(df["Event Date"], errors="coerce")
     if "Start Year" in df.columns:
@@ -127,35 +154,75 @@ def load_emdat(path: str) -> pd.DataFrame:
             df["Severity_raw"].str.extract(r"(-?\d+)", expand=False), errors="coerce"
         )
 
+    # --- Epicenter country normalization (in-memory only) ---
+    if "Country" in df.columns:
+        df["Country_all"] = df["Country"].astype(str)  # preserve original
+        df["Country"] = df["Country_all"].apply(_first_country_only)
+
     return df
 
-def _apply_filters(df: pd.DataFrame, years: Tuple[int,int], country: str, dtype: str) -> pd.DataFrame:
+# ---------- availability helpers (ONLY valid options based on current scope) ----------
+def _filter_by_years(df: pd.DataFrame, years: Tuple[int,int]) -> pd.DataFrame:
     lo, hi = years
-    base = df.copy()
+    if "Start Year" in df.columns and df["Start Year"].notna().any():
+        return df[(df["Start Year"] >= lo) & (df["Start Year"] <= hi)]
+    if "Event Date" in df.columns and df["Event Date"].notna().any():
+        return df[(df["Event Date"].dt.year >= lo) & (df["Event Date"].dt.year <= hi)]
+    return df
 
-    # Time (Start Year preferred, fallback Event Date)
-    if "Start Year" in base.columns and base["Start Year"].notna().any():
-        base = base[(base["Start Year"] >= lo) & (base["Start Year"] <= hi)]
-    elif "Event Date" in base.columns and base["Event Date"].notna().any():
-        base = base[(base["Event Date"].dt.year >= lo) & (base["Event Date"].dt.year <= hi)]
+def _available_regions(df: pd.DataFrame, years: Tuple[int,int]) -> List[str]:
+    d = _filter_by_years(df, years)
+    regs = sorted([r for r in d["Region"].dropna().astype(str).unique() if r.strip()])
+    return ["All Regions"] + regs
 
-    # Country
-    if country and country != "Global":
-        base = base[base["Country"] == country]
-
-    # Type
-    if dtype and dtype != "All":
-        base = base[base["Disaster Type"] == dtype]
-
-    return base
-
-def _country_list(df: pd.DataFrame) -> List[str]:
-    countries = sorted([c for c in df["Country"].dropna().astype(str).unique().tolist() if c.strip()])
+def _available_countries(df: pd.DataFrame, years: Tuple[int,int], region: str) -> List[str]:
+    d = _filter_by_years(df, years)
+    if region and region != "All Regions":
+        d = d[d["Region"] == region]
+    countries = sorted([c for c in d["Country"].dropna().astype(str).unique() if c.strip()])
     return ["Global"] + countries
 
-def _type_list(df: pd.DataFrame) -> List[str]:
-    dtypes = sorted([t for t in df["Disaster Type"].dropna().astype(str).unique().tolist() if t.strip()])
+def _available_types(df: pd.DataFrame, years: Tuple[int,int], region: str, country: str) -> List[str]:
+    d = _filter_by_years(df, years)
+    if region and region != "All Regions":
+        d = d[d["Region"] == region]
+    if country and country != "Global":
+        d = d[d["Country"] == country]
+    dtypes = sorted([t for t in d["Disaster Type"].dropna().astype(str).unique() if t.strip()])
     return ["All"] + dtypes
+
+def _coerce_choice(current: Optional[str], options: List[str], fallback_idx: int = 0) -> str:
+    if not options:
+        return ""
+    if current in options:
+        return current
+    return options[min(fallback_idx, len(options)-1)]
+
+def _apply_scope(df: pd.DataFrame, years: Tuple[int,int], region: str, country: str) -> pd.DataFrame:
+    d = _filter_by_years(df, years)
+    if region and region != "All Regions":
+        d = d[d["Region"] == region]
+    if country and country != "Global":
+        d = d[d["Country"] == country]
+    return d
+
+# ---- Geo helpers for concentration map ----
+REGION_BBOX = {
+    "Africa":   (-35.0, 37.5,  -20.0,  52.0),
+    "Asia":     ( -5.0, 82.0,  25.0, 180.0),  # includes ME & SE Asia
+    "Europe":   ( 35.0, 72.5, -25.0,  45.0),
+    "Americas": (-57.0, 72.0, -170.0, -30.0), # N+S America
+    "Oceania":  (-50.0, 10.0,  105.0, 180.0),
+}
+
+def _clip_to_region_bbox(d: pd.DataFrame, region: str) -> pd.DataFrame:
+    if not region or region == "All Regions" or region not in REGION_BBOX:
+        return d
+    lat_min, lat_max, lon_min, lon_max = REGION_BBOX[region]
+    dd = d.copy()
+    dd["Latitude"]  = pd.to_numeric(dd["Latitude"], errors="coerce")
+    dd["Longitude"] = pd.to_numeric(dd["Longitude"], errors="coerce")
+    return dd[(dd["Latitude"].between(lat_min, lat_max)) & (dd["Longitude"].between(lon_min, lon_max))]
 
 def _center_zoom_from_points(lat: pd.Series, lon: pd.Series) -> Tuple[dict, float]:
     lats = pd.to_numeric(lat, errors="coerce").dropna()
@@ -173,23 +240,11 @@ def _center_zoom_from_points(lat: pd.Series, lon: pd.Series) -> Tuple[dict, floa
     zoom = max(1.0, min(zoom_from_lon, zoom_from_lat))
     return center, min(7.5, zoom)
 
-def _top_n_with_others(df: pd.DataFrame, label_col: str, n: int = 5) -> pd.DataFrame:
-    if df.empty: return df
-    counts = df.groupby(label_col, as_index=False)["DisNo."].count().rename(columns={"DisNo.": "Count"})
-    counts = counts.sort_values("Count", ascending=False)
-    if len(counts) <= n: return counts
-    top = counts.head(n).copy()
-    others = counts.iloc[n:]["Count"].sum()
-    top = pd.concat([top, pd.DataFrame({label_col: ["Others"], "Count": [others]})], ignore_index=True)
-    return top
-
 # =========================
 # PAGE RENDER
 # =========================
 def render():
-    # Sidebar (global filters drive defaults of every visual)
-    st.sidebar.header("Analysis Filters")
-
+    # ---------- Load data ----------
     emdat_used_path = _first_existing_path(EMDAT_PATHS)
     if not emdat_used_path:
         st.sidebar.error(
@@ -199,27 +254,66 @@ def render():
         st.stop()
 
     df = load_emdat(emdat_used_path)
-
     missing = [c for c in REQUIRED_COLS if c not in df.columns]
     if missing:
         st.sidebar.error(f"EM-DAT file is missing columns: {', '.join(missing)}")
         st.stop()
 
-    # Year bounds
+    # ---------- Dataset bounds ----------
     if "Start Year" in df and df["Start Year"].notna().any():
         min_year = int(pd.to_numeric(df["Start Year"], errors="coerce").dropna().min())
         max_year = int(pd.to_numeric(df["Start Year"], errors="coerce").dropna().max())
     else:
         min_year, max_year = 1970, 2025
 
+    # ---------- Global state (single source of truth) ----------
+    if "glob_years" not in st.session_state:
+        st.session_state["glob_years"] = (max(DEFAULT_START, min_year), min(DEFAULT_END, max_year))
+    if "glob_region" not in st.session_state:
+        st.session_state["glob_region"] = "All Regions"
+    if "glob_country" not in st.session_state:
+        st.session_state["glob_country"] = "Global"
+
+    # ---------- Sidebar (GLOBAL CONTROLS) ----------
+    st.sidebar.header("Analysis Filters")
+
+    # Year range
     years_global = st.sidebar.slider(
         "Year range (global)",
-        min_value=min_year, max_value=max_year,
-        value=(max(DEFAULT_START, min_year), min(DEFAULT_END, max_year)), step=1
+        min_value=min_year,
+        max_value=max_year,
+        value=(
+            max(min_year, st.session_state["glob_years"][0]),
+            min(max_year, st.session_state["glob_years"][1]),
+        ),
+        step=1,
+        key="__years_slider__",
     )
-    country_global = st.sidebar.selectbox("Country (global)", _country_list(df), index=0)
-    type_global    = st.sidebar.selectbox("Disaster Type (global)", _type_list(df), index=0)
+    st.session_state["glob_years"] = years_global
 
+    # Region options based on years
+    region_options = _available_regions(df, st.session_state["glob_years"])
+    region_val = _coerce_choice(st.session_state["glob_region"], region_options, 0)
+    region_global = st.sidebar.selectbox(
+        "Region (global)",
+        options=region_options,
+        index=region_options.index(region_val),
+        key="__region_select__",
+    )
+    st.session_state["glob_region"] = region_global
+
+    # Country options based on years + region
+    country_options = _available_countries(df, st.session_state["glob_years"], st.session_state["glob_region"])
+    country_val = _coerce_choice(st.session_state["glob_country"], country_options, 0)
+    country_global = st.sidebar.selectbox(
+        "Country (global)",
+        options=country_options,
+        index=country_options.index(country_val),
+        key="__country_select__",
+    )
+    st.session_state["glob_country"] = country_global
+
+    # ---------- Section jump ----------
     st.sidebar.markdown("---")
     st.sidebar.subheader("Jump to section")
     anchor_map = {
@@ -234,19 +328,28 @@ def render():
     sec_choice = st.sidebar.radio("", list(anchor_map.keys()), index=0)
     st.sidebar.markdown(f"[Go ▶](#{anchor_map[sec_choice]})", unsafe_allow_html=True)
 
-    # ----------------- Overview -----------------
+    # ---------- Overview ----------
     _anchor("sec-da-overview")
     section_title("Disaster Analysis (EM-DAT)")
     st.markdown(
-        f"Global defaults apply unless overridden in each visual. Current global: "
-        f"**{years_global[0]}–{years_global[1]}**, **{country_global}**, **{type_global}**."
+        f"Global scope: **{st.session_state['glob_years'][0]}–{st.session_state['glob_years'][1]}**, "
+        f"**{st.session_state['glob_region']}**, **{st.session_state['glob_country']}**."
     )
     try:
         st.caption(f"EM-DAT file: `{os.path.relpath(emdat_used_path)}`")
     except Exception:
         st.caption(f"EM-DAT file: `{emdat_used_path}`")
 
-    # 1) Choropleth
+    # Helper to build constrained selector for each visual
+    def constrained_type_selector(label_key_prefix: str, years_sel: Tuple[int,int], region_sel: str, country_sel: str) -> str:
+        type_options = _available_types(df, years_sel, region_sel, country_sel)
+        key_state = f"{label_key_prefix}_type"
+        prev = st.session_state.get(key_state, "All")
+        coerced = _coerce_choice(prev, type_options, 0)
+        val = st.selectbox("Disaster Type", type_options, index=type_options.index(coerced), key=key_state)
+        return val
+
+    # 1) Choropleth (total per country)
     st.markdown("---")
     _anchor("sec-da-map-country")
     section_title("Map: Total Disasters per Country")
@@ -254,18 +357,33 @@ def render():
     with st.expander("Selections (this visual)", expanded=True):
         c1, c2, c3 = st.columns(3)
         with c1:
-            years1 = st.slider("Year range", min_year, max_year, value=years_global, key="years_1")
+            years1 = st.slider(
+                "Year range",
+                min_year, max_year,
+                value=st.session_state["glob_years"],
+                key="years_1",
+            )
         with c2:
-            country1 = st.selectbox("Country", _country_list(df), index=_country_list(df).index(country_global), key="country_1")
+            region_opts_1 = _available_regions(df, years1)
+            region1 = st.selectbox(
+                "Region",
+                options=region_opts_1,
+                index=region_opts_1.index(_coerce_choice(st.session_state["glob_region"], region_opts_1, 0)),
+                key="region_1",
+            )
         with c3:
-            type1 = st.selectbox("Disaster Type", _type_list(df), index=_type_list(df).index(type_global), key="type_1")
+            country_opts_1 = _available_countries(df, years1, region1)
+            country1 = st.selectbox(
+                "Country",
+                options=country_opts_1,
+                index=country_opts_1.index(_coerce_choice(st.session_state["glob_country"], country_opts_1, 0)),
+                key="country_1",
+            )
 
-    # Apply exactly the chosen scope (no out-of-range or different country leaks)
-    d1 = _apply_filters(df, years1, "Global" if country1 == "Global" else country1, type1)
+    d1 = _apply_scope(df, years1, region1, country1)
     if country1 == "Global":
         agg1 = d1.groupby("Country", as_index=False)["DisNo."].count().rename(columns={"DisNo.": "Events"})
     else:
-        # For single country, show its value and keep choropleth zoomed
         agg1 = d1.groupby("Country", as_index=False)["DisNo."].count().rename(columns={"DisNo.": "Events"})
         agg1 = agg1[agg1["Country"] == country1]
 
@@ -281,7 +399,7 @@ def render():
             geo=dict(showframe=False, showcoastlines=True, projection_type="natural earth", fitbounds="locations")
         )
         st.plotly_chart(fig_chor, use_container_width=True, config=PLOTLY_CFG)
-        st.caption("Hover a country to see total events. Global filters and the selectors above fully control the scope.")
+        st.caption("Hover a country to see total events. All selectors here are constrained to valid choices.")
 
     # 2) Top-10 frequency
     st.markdown("---")
@@ -289,44 +407,59 @@ def render():
     section_title("Top-10 Disasters by Frequency")
 
     with st.expander("Selections (this visual)", expanded=True):
-        c1, c2, c3 = st.columns(3)
+        c1, c2 = st.columns(2)
         with c1:
-            years2 = st.slider("Year range", min_year, max_year, value=years_global, key="years_2")
+            years2 = st.slider("Year range", min_year, max_year, value=st.session_state["glob_years"], key="years_2")
+            region_opts_2 = _available_regions(df, years2)
+            region2 = st.selectbox(
+                "Region",
+                options=region_opts_2,
+                index=region_opts_2.index(_coerce_choice(st.session_state["glob_region"], region_opts_2, 0)),
+                key="region_2",
+            )
         with c2:
-            country2 = st.selectbox("Country", _country_list(df), index=_country_list(df).index(country_global), key="country_2")
-        with c3:
-            chart2 = st.radio("Chart", ["Bar", "Pie"], horizontal=True, key="chart_2")
+            country_opts_2 = _available_countries(df, years2, region2)
+            country2 = st.selectbox(
+                "Country",
+                options=country_opts_2,
+                index=country_opts_2.index(_coerce_choice(st.session_state["glob_country"], country_opts_2, 0)),
+                key="country_2",
+            )
+        chart2 = st.radio("Chart", ["Bar", "Pie"], horizontal=True, key="chart_2")
 
-    d2 = _apply_filters(df, years2, country2, "All")
+    d2 = _apply_scope(df, years2, region2, country2)
     freq = d2.groupby("Disaster Type", as_index=False)["DisNo."].count().rename(columns={"DisNo.": "Count"})
     freq = freq.sort_values("Count", ascending=False)
 
-    # Ensure we only show data in scope; then top10 + Others
-    if len(freq) > 10:
-        top10 = freq.head(10).copy()
-        others_count = int(freq["Count"].iloc[10:].sum())
-        top10 = pd.concat([top10, pd.DataFrame({"Disaster Type": ["Others"], "Count": [others_count]})], ignore_index=True)
-    else:
-        top10 = freq
-
-    if top10.empty:
+    if freq.empty:
         st.info("No data for the selected filters.")
     else:
+        if len(freq) > 10:
+            top10 = freq.head(10).copy()
+            others_count = int(freq["Count"].iloc[10:].sum())
+            top10 = pd.concat([top10, pd.DataFrame({"Disaster Type": ["Others"], "Count": [others_count]})], ignore_index=True)
+        else:
+            top10 = freq
+
         if chart2 == "Bar":
             fig_bar = px.bar(
                 top10, x="Count", y="Disaster Type", orientation="h",
                 color="Disaster Type", color_discrete_sequence=TYPE_PALETTE, text="Count"
             )
-            fig_bar.update_layout(yaxis={'categoryorder': 'total ascending'}, bargap=0.25, showlegend=False)
+            fig_bar.update_layout(
+                yaxis={'categoryorder': 'total ascending'},
+                bargap=0.25,
+                showlegend=False
+            )
             fig_bar.update_traces(textposition="outside", cliponaxis=False, hovertemplate="<b>%{y}</b><br>Count: %{x}<extra></extra>")
-            st.plotly_chart(fig_bar, use_container_width=True, config=PLOTLY_CFG)
+            st.plotly_chart(fig_bar, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
         else:
             fig_pie = px.pie(
                 top10, names="Disaster Type", values="Count", hole=0.3,
                 color="Disaster Type", color_discrete_sequence=TYPE_PALETTE
             )
             fig_pie.update_traces(textposition="inside", textinfo="percent+label")
-            st.plotly_chart(fig_pie, use_container_width=True, config=PLOTLY_CFG)
+            st.plotly_chart(fig_pie, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
 
     # 3) Stacked area timeline (Top-5 + Others)
     st.markdown("---")
@@ -334,13 +467,28 @@ def render():
     section_title("Stacked Area Timeline (by Disaster Type – Top-5 + Others)")
 
     with st.expander("Selections (this visual)", expanded=True):
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         with c1:
-            years3 = st.slider("Year range", min_year, max_year, value=years_global, key="years_3")
+            years3 = st.slider("Year range", min_year, max_year, value=st.session_state["glob_years"], key="years_3")
         with c2:
-            country3 = st.selectbox("Country", _country_list(df), index=_country_list(df).index(country_global), key="country_3")
+            region_opts_3 = _available_regions(df, years3)
+            region3 = st.selectbox(
+                "Region",
+                options=region_opts_3,
+                index=region_opts_3.index(_coerce_choice(st.session_state["glob_region"], region_opts_3, 0)),
+                key="region_3",
+            )
+        with c3:
+            country_opts_3 = _available_countries(df, years3, region3)
+            country3 = st.selectbox(
+                "Country",
+                options=country_opts_3,
+                index=country_opts_3.index(_coerce_choice(st.session_state["glob_country"], country_opts_3, 0)),
+                key="country_3",
+            )
 
-    d3 = _apply_filters(df, years3, country3, "All")
+    d3 = _apply_scope(df, years3, region3, country3)
+
     # Year-Month index
     if "Event Date" in d3.columns and d3["Event Date"].notna().any():
         ym = d3["Event Date"].dt.to_period("M").astype(str)
@@ -351,7 +499,16 @@ def render():
 
     d3a = d3.assign(YearMonth=ym)
 
-    # Build Top-5 + Others labeling
+    def _top_n_with_others(df_in: pd.DataFrame, label_col: str, n: int = 5) -> pd.DataFrame:
+        if df_in.empty: return df_in
+        counts = df_in.groupby(label_col, as_index=False)["DisNo."].count().rename(columns={"DisNo.": "Count"})
+        counts = counts.sort_values("Count", ascending=False)
+        if len(counts) <= n: return counts
+        top = counts.head(n).copy()
+        others = counts.iloc[n:]["Count"].sum()
+        top = pd.concat([top, pd.DataFrame({label_col: ["Others"], "Count": [others]})], ignore_index=True)
+        return top
+
     top_counts = _top_n_with_others(d3a, "Disaster Type", n=5)
     top_labels = set(top_counts["Disaster Type"].tolist())
     d3a["Type_6"] = d3a["Disaster Type"].where(d3a["Disaster Type"].isin(top_labels), "Others")
@@ -362,7 +519,6 @@ def render():
     else:
         area["YearMonth_dt"] = pd.to_datetime(area["YearMonth"], errors="coerce")
         area = area.sort_values("YearMonth_dt")
-        # color map: five distinct + grey for Others
         unique_types = [t for t in area["Type_6"].unique() if t != "Others"]
         color_map = {t: AREA_TOP5_PALETTE[i % len(AREA_TOP5_PALETTE)] for i, t in enumerate(sorted(unique_types))}
         color_map["Others"] = OTHERS_COLOR
@@ -374,101 +530,163 @@ def render():
         )
         st.plotly_chart(fig_area, use_container_width=True, config=PLOTLY_CFG)
 
-    # 4) Severity analysis (single disaster type, cleaned numeric, compare across Countries/Years)
+    # 4) Yearly Distribution (Counts)
+    # 4) Yearly Distribution (Counts)
     st.markdown("---")
-    _anchor("sec-da-severity")
-    section_title("Severity Analysis (per Disaster Type)")
+    _anchor("sec-da-year-dist")
+    section_title("Yearly Distribution (Counts)")
 
     with st.expander("Selections (this visual)", expanded=True):
-        c1, c2, c3 = st.columns(3)
+        c1, c2, c3, c4 = st.columns(4)
         with c1:
-            years4 = st.slider("Year range", min_year, max_year, value=years_global, key="years_4")
+            yearsY = st.slider("Year range", min_year, max_year, value=st.session_state["glob_years"], key="years_yearly")
         with c2:
-            # select exactly one type to avoid cross-type comparison
-            types_all = [t for t in _type_list(df) if t != "All"]
-            dtype4 = st.selectbox("Disaster Type (required)", types_all, index=types_all.index(type_global) if (type_global in types_all) else 0)
+            region_opts_Y = _available_regions(df, yearsY)
+            regionY = st.selectbox(
+                "Region",
+                options=region_opts_Y,
+                index=region_opts_Y.index(_coerce_choice(st.session_state["glob_region"], region_opts_Y, 0)),
+                key="region_yearly",
+            )
         with c3:
-            compare_dim = st.radio("Compare by", ["Country","Year"], horizontal=True, key="sev_dim")
-
-    # Choose metric: If 'Severity' exists use it; else default to Total Affected (cleaned numeric)
-    metric_candidates = ["Severity", "Total Deaths", "No. Injured", "No. Affected", "Total Affected", "Total Damage ('000 US$)"]
-    existing_metrics = [m for m in metric_candidates if m in df.columns]
-    metric4 = st.selectbox("Metric", existing_metrics, index=existing_metrics.index("Severity") if "Severity" in existing_metrics else existing_metrics.index("Total Affected"))
-
-    d4 = _apply_filters(df, years4, "Global", dtype4).copy()
-    # Strictly keep only rows in scope; parse numeric for text metrics
-    if metric4 == "Severity":
-        if "Severity" in d4.columns:
-            # already parsed during load; ensure numeric
-            d4["Severity"] = pd.to_numeric(d4["Severity"], errors="coerce")
-    else:
-        d4[metric4] = pd.to_numeric(d4[metric4], errors="coerce")
-    d4 = d4.dropna(subset=[metric4])
-
-    if d4.empty:
-        st.info("No data for the selected filters / selections.")
-    else:
-        # build comparison key
-        if compare_dim == "Country":
-            key = "Country"
-        else:
-            if "Event Date" in d4.columns and d4["Event Date"].notna().any():
-                d4["Year"] = d4["Event Date"].dt.year
-            else:
-                d4["Year"] = pd.to_numeric(d4["Start Year"], errors="coerce")
-            key = "Year"
-
-        tab_box, tab_violin = st.tabs(["Box Plot", "Violin Plot"])
-        with tab_box:
-            fig_box = px.box(
-                d4, x=key, y=metric4, points="suspectedoutliers",
-                color=key if d4[key].nunique() <= 12 else None
+            country_opts_Y = _available_countries(df, yearsY, regionY)
+            countryY = st.selectbox(
+                "Country",
+                options=country_opts_Y,
+                index=country_opts_Y.index(_coerce_choice(st.session_state["glob_country"], country_opts_Y, 0)),
+                key="country_yearly",
             )
-            fig_box.update_layout(xaxis_title=key, yaxis_title=metric4, showlegend=False)
-            st.plotly_chart(fig_box, use_container_width=True, config=PLOTLY_CFG)
-        with tab_violin:
-            fig_vio = px.violin(
-                d4, x=key, y=metric4, box=True, points=False,
-                color=key if d4[key].nunique() <= 12 else None
-            )
-            fig_vio.update_layout(xaxis_title=key, yaxis_title=metric4, showlegend=False)
-            st.plotly_chart(fig_vio, use_container_width=True, config=PLOTLY_CFG)
+        with c4:
+            typeY = constrained_type_selector("yearly", yearsY, regionY, countryY)
 
-    # 5) Concentration heat & map (density + scatter; new color scale; zoom + hover)
+    dY = _apply_scope(df, yearsY, regionY, countryY)
+    if typeY and typeY != "All":
+        dY = dY[dY["Disaster Type"] == typeY]
+
+    # Determine Year column
+    if "Event Date" in dY.columns and dY["Event Date"].notna().any():
+        dY["Year"] = dY["Event Date"].dt.year
+    else:
+        dY["Year"] = pd.to_numeric(dY["Start Year"], errors="coerce")
+
+    year_counts = (
+        dY.dropna(subset=["Year"])
+        .groupby("Year", as_index=False)["DisNo."].count()
+        .rename(columns={"DisNo.": "Count"})
+        .sort_values("Year")
+    )
+
+    if year_counts.empty:
+        st.info("No data for the selected filters.")
+    else:
+        # Ensure continuous years in the selected range (optional: fill zeros)
+        full_years = pd.DataFrame({"Year": list(range(yearsY[0], yearsY[1] + 1))})
+        year_counts = full_years.merge(year_counts, on="Year", how="left").fillna({"Count": 0})
+
+        fig_year = px.bar(
+            year_counts, x="Year", y="Count",
+            text="Count",
+            color_discrete_sequence=["#2c7fb8"],  # single blue
+        )
+        fig_year.update_traces(textposition="outside", cliponaxis=False)
+        fig_year.update_layout(
+            xaxis_title="Year",
+            yaxis_title="Number of Events",
+            showlegend=False,
+            bargap=0.2,
+            hovermode="x unified",
+        )
+        st.plotly_chart(fig_year, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+
+
+   # 5) Concentration heat & map (density + scatter)
     st.markdown("---")
     _anchor("sec-da-concentration")
     section_title("Concentration Heat & Map (Historical)")
 
     with st.expander("Selections (this visual)", expanded=True):
-        c1, c2, c3 = st.columns(3)
+        c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
-            years5 = st.slider("Year range", min_year, max_year, value=years_global, key="years_5")
+            years5 = st.slider("Year range", min_year, max_year, value=st.session_state["glob_years"], key="years_5")
         with c2:
-            country5 = st.selectbox("Country", _country_list(df), index=_country_list(df).index(country_global), key="country_5")
+            region_opts_5 = _available_regions(df, years5)
+            region5 = st.selectbox(
+                "Region",
+                options=region_opts_5,
+                index=region_opts_5.index(_coerce_choice(st.session_state["glob_region"], region_opts_5, 0)),
+                key="region_5",
+            )
         with c3:
-            type5 = st.selectbox("Disaster Type", _type_list(df), index=_type_list(df).index(type_global), key="type_5")
+            country_opts_5 = _available_countries(df, years5, region5)
+            country5 = st.selectbox(
+                "Country",
+                options=country_opts_5,
+                index=country_opts_5.index(_coerce_choice(st.session_state["glob_country"], country_opts_5, 0)),
+                key="country_5",
+            )
+        with c4:
+            type5 = constrained_type_selector("conc", years5, region5, country5)
+        with c5:
+            radius5 = st.slider("Density radius", 6, 50, 24, step=2, help="Increase to show larger/smoother density areas")
+        with c6:
+            # NEW: include Frequency as default, plus weighted options
+            weight_by = st.selectbox(
+                "Weight by",
+                ["Frequency", "Total Affected", "Total Deaths"],
+                index=0,
+                help="Frequency counts events. Other options weight density by impact (winsorized at 95th percentile).",
+            )
 
-    d5 = _apply_filters(df, years5, country5, type5).dropna(subset=["Latitude", "Longitude"])
+    d5 = _apply_scope(df, years5, region5, country5)
+    if type5 and type5 != "All":
+        d5 = d5[d5["Disaster Type"] == type5]
+    d5 = d5.dropna(subset=["Latitude", "Longitude"])
+    d5 = _clip_to_region_bbox(d5, region5)
+
+    # Density weights
+    z = None  # default None => px.density_mapbox counts points (Frequency)
+    if weight_by != "Frequency":
+        col = "Total Affected" if weight_by == "Total Affected" else "Total Deaths"
+        if col in d5.columns:
+            z_raw = pd.to_numeric(d5[col], errors="coerce").fillna(0)
+            cap = z_raw.quantile(0.95) if len(z_raw) else 0
+            if cap > 0:
+                z = np.clip(z_raw, 0, cap) / cap
+            else:
+                z = np.ones(len(d5))  # fallback if all zeros
+        else:
+            z = np.ones(len(d5))      # fallback if column missing
+
     if d5.empty:
         st.info("No geolocated events for the selected filters.")
     else:
         center, zoom = _center_zoom_from_points(d5["Latitude"], d5["Longitude"])
         fig_density = px.density_mapbox(
-            d5, lat="Latitude", lon="Longitude", radius=18,
-            center=center, zoom=zoom, mapbox_style="carto-positron",
+            d5,
+            lat="Latitude",
+            lon="Longitude",
+            z=z,  # None => frequency; array => weighted
+            radius=int(radius5),
+            center=center,
+            zoom=zoom,
+            mapbox_style="carto-positron",
             color_continuous_scale=HEAT_SCALE_MAP
         )
         fig_density.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=540)
-        # Add points with hover
+
+        # scatter layer for hovers
         fig_scatter = go.Figure(fig_density)
         fig_scatter.add_trace(go.Scattermapbox(
             lat=d5["Latitude"], lon=d5["Longitude"], mode="markers",
-            marker=dict(size=7, opacity=0.85),
+            marker=dict(size=7, opacity=0.85, color="#0b4f8a"),
             text=d5["Event Name"],
             hovertemplate="<b>%{text}</b><br>Lat: %{lat:.2f}, Lon: %{lon:.2f}<extra></extra>"
         ))
         st.plotly_chart(fig_scatter, use_container_width=True, config=PLOTLY_CFG)
-        st.caption("Soft colors = fewer events; stronger colors = higher concentration. Zoom and pan to inspect clusters.")
+
+        cap_note = "" if weight_by == "Frequency" else " (winsorized at 95th percentile)"
+        st.caption(f"Density weighted by **{weight_by}**{cap_note}. Increase radius for larger/smoother blobs.")
+
 
     # 6) Calendar / Lat-Lon heat
     st.markdown("---")
@@ -479,13 +697,27 @@ def render():
 
     with tab_cal:
         with st.expander("Selections (this visual)", expanded=True):
-            c1, c2 = st.columns(2)
+            c1, c2, c3 = st.columns(3)
             with c1:
-                years6 = st.slider("Year range", min_year, max_year, value=years_global, key="years_6")
+                years6 = st.slider("Year range", min_year, max_year, value=st.session_state["glob_years"], key="years_6")
             with c2:
-                country6 = st.selectbox("Country", _country_list(df), index=_country_list(df).index(country_global), key="country_6")
+                region_opts_6 = _available_regions(df, years6)
+                region6 = st.selectbox(
+                    "Region",
+                    options=region_opts_6,
+                    index=region_opts_6.index(_coerce_choice(st.session_state["glob_region"], region_opts_6, 0)),
+                    key="region_6",
+                )
+            with c3:
+                country_opts_6 = _available_countries(df, years6, region6)
+                country6 = st.selectbox(
+                    "Country",
+                    options=country_opts_6,
+                    index=country_opts_6.index(_coerce_choice(st.session_state["glob_country"], country_opts_6, 0)),
+                    key="country_6",
+                )
 
-        d6 = _apply_filters(df, years6, country6, "All")
+        d6 = _apply_scope(df, years6, region6, country6)
         if "Event Date" in d6.columns and d6["Event Date"].notna().any():
             ym6 = d6["Event Date"].dt.to_period("M").astype(str)
         else:
@@ -509,15 +741,33 @@ def render():
 
     with tab_xy:
         with st.expander("Selections (this visual)", expanded=True):
-            c1, c2, c3 = st.columns(3)
+            c1, c2, c3, c4 = st.columns(4)
             with c1:
-                years7 = st.slider("Year range", min_year, max_year, value=years_global, key="years_7")
+                years7 = st.slider("Year range", min_year, max_year, value=st.session_state["glob_years"], key="years_7")
             with c2:
-                country7 = st.selectbox("Country", _country_list(df), index=_country_list(df).index(country_global), key="country_7")
+                region_opts_7 = _available_regions(df, years7)
+                region7 = st.selectbox(
+                    "Region",
+                    options=region_opts_7,
+                    index=region_opts_7.index(_coerce_choice(st.session_state["glob_region"], region_opts_7, 0)),
+                    key="region_7",
+                )
             with c3:
-                type7 = st.selectbox("Disaster Type", _type_list(df), index=_type_list(df).index(type_global), key="type_7")
+                country_opts_7 = _available_countries(df, years7, region7)
+                country7 = st.selectbox(
+                    "Country",
+                    options=country_opts_7,
+                    index=country_opts_7.index(_coerce_choice(st.session_state["glob_country"], country_opts_7, 0)),
+                    key="country_7",
+                )
+            with c4:
+                type7 = constrained_type_selector("xy", years7, region7, country7)
 
-        d7 = _apply_filters(df, years7, country7, type7).dropna(subset=["Latitude", "Longitude"])
+        d7 = _apply_scope(df, years7, region7, country7)
+        if type7 and type7 != "All":
+            d7 = d7[d7["Disaster Type"] == type7]
+        d7 = d7.dropna(subset=["Latitude", "Longitude"])
+
         if d7.empty:
             st.info("No geolocated data for the selected filters.")
         else:
@@ -530,3 +780,4 @@ def render():
     # Footer
     st.markdown("---")
     st.caption("Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")
+

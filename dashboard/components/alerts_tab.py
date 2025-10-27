@@ -324,7 +324,6 @@ def render():
     tabs = st.tabs(["Bar Chart", "Pie Chart"])
 
     with tabs[0]:
-        subsection_title("Bar Chart")
         fig_bar = px.bar(
             viz_df, x="Alert Score", y="Country Label",
             color=viz_df.get("Disaster Type", "Type"),
@@ -345,7 +344,6 @@ def render():
         st.plotly_chart(fig_bar, use_container_width=True)
 
     with tabs[1]:
-        subsection_title("Pie Chart")
         alert_counts = (
             viz_df["Alert Level"].value_counts()
             .reindex(["Red", "Orange", "Green"], fill_value=0)
@@ -419,7 +417,6 @@ def render():
         tab1, tab2 = st.tabs(["By Alert Level", "By Disaster Type"])
 
         with tab1:
-            subsection_title("By Alert Level")
             lvl_tl = build_active_timeline(ts_df, "Alert Level")
             if lvl_tl.empty:
                 st.markdown("No Red/Orange/Green alerts to plot for the last 30 days.")
@@ -437,7 +434,6 @@ def render():
                 st.plotly_chart(fig_lvl, use_container_width=True)
 
         with tab2:
-            subsection_title("By Disaster Type")
             type_tl = build_active_timeline(ts_df, "Disaster Type")
             if type_tl.empty:
                 st.markdown("No disasters to plot for the last 30 days.")
