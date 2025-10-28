@@ -1,257 +1,321 @@
-"""
-Environmental Overview Tab
-
-Displays key statistics and a high-level overview of global disaster data,
-including a styled map consistent with the Alerts tab (Carto-Positron with
-halo/ring/main markers).
-"""
-
+#app.py
 import os
-import math
-import pandas as pd
+import sys
+from pathlib import Path
+import re
+import unicodedata
+import html
+from contextlib import contextmanager
+
 import streamlit as st
-import plotly.express as px
-from plotly import graph_objects as go
 
-# Import merge function from utils
-from src.utils.merge_datasets import merge_datasets
+# ---------------------------------------------------------------------
+# PATHS / IMPORTS
+# ---------------------------------------------------------------------
+ROOT = Path(_file_).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
 
-# ===========================
-# THEME HELPERS
-# ===========================
-def _anchor(id_: str):
-    """Invisible HTML anchor for smooth scrolling targets."""
-    st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
+# (optional) confirm it's added
+# print("Python path includes:", ROOT)
 
-def section_title(text: str):
-    """Theme-aligned section bar (matches app theme)."""
-    st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
-def subsection_title(text: str):
-    """Theme-aligned subsection bar (matches app theme)."""
-    st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
+import streamlit as st
+from dashboard.components import home_tab, environmental_overview_tab, impact_tab, disaster_analysis_tab, alerts_tab, hypothesis_tab
+from src.utils import style_config
 
-def _fmt(dt):
-    try:
-        return pd.to_datetime(dt).strftime("%Y-%m-%d")
-    except Exception:
-        return "—"
+# ----------------------------
+# PAGE CONFIGURATION
+# ----------------------------
+st.set_page_config(
+    page_title="GeoVision Disaster Dashboard",
+    page_icon="🌍",
+    layout="wide"
+)
+from src.utils import style_config
 
-# ===========================
-# PALETTE (match app)
-# ===========================
-ALERT_COLORS = {
-    "Red":    "#EA6455",
-    "Orange": "#EFB369",
-    "Green":  "#59B3A9",
-    "Unknown":"#8A8A8A",
+# ---------------------------------------------------------------------
+# PAGE CONFIG + BASE STYLE
+# ---------------------------------------------------------------------
+style_config.apply_streamlit_style()
+
+css_path = os.path.join("dashboard", "assets", "style.css")
+if os.path.exists(css_path):
+    with open(css_path) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+else:
+    st.warning("assets/style.css not found — styles may not render as designed.")
+
+# Small inline overrides so you don't need to touch assets/style.css:
+# 1) smooth scroll, 2) slightly lighter section boxes, 3) anchors land below banner+menus
+st.markdown(
+    """
+    <style>
+      html{ scroll-behavior:smooth; }
+      .gv-section-title{ background:#f9fafb; border:1px solid #ececec; scroll-margin-top:96px; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ---------------------------------------------------------------------
+# NAV STRUCTURE
+# ---------------------------------------------------------------------
+PAGES = {
+    "Home": [],
+    "Alerts": [],
+    "Environmental Overview": [],
+    "Impact of Natural Disasters": [],
+    "Disaster Analysis": [],
+    "Hypothesis": [],
 }
+ORDER = list(PAGES.keys())
+DEFAULT_PAGE = "Alerts"
 
-# ===========================
-# MAP HELPERS
-# ===========================
-def _center_zoom_from_points(lat_series: pd.Series, lon_series: pd.Series):
-    """Compute approximate (center, zoom) for Mapbox from bounds."""
-    lats = pd.to_numeric(lat_series, errors="coerce").dropna()
-    lons = pd.to_numeric(lon_series, errors="coerce").dropna()
+# ---------------------------------------------------------------------
+# THEME PICKER (Gray by default)
+# ---------------------------------------------------------------------
+THEMES = {
+    "Gray (default)": {"900":"#1f2937","800":"#374151","700":"#4b5563","600":"#6b7280","050":"#f3f4f6"},
+    "Blue": {"900":"#0f3e6b","800":"#134d88","700":"#185aa3","600":"#1b66b9","050":"#eef5fc"},
+    "Red": {"900":"#6b1321","800":"#8a1a2c","700":"#a32236","600":"#c12941","050":"#fdecef"},
+    "Dark": {"900":"#e5e7eb","800":"#d1d5db","700":"#9ca3af","600":"#6b7280","050":"#111827"},
+}
+st.sidebar.header("Navigation")
+theme_name = st.sidebar.selectbox("Theme", list(THEMES.keys()), index=0)
+t = THEMES[theme_name]
+st.markdown(
+    f"""
+    <style>
+      :root {{
+        --brand-900:{t['900']};
+        --brand-800:{t['800']};
+        --brand-700:{t['700']};
+        --brand-600:{t['600']};
+        --brand-050:{t['050']};
+      }}
+      .gv {{
+        --brand-900:{t['900']};
+        --brand-800:{t['800']};
+        --brand-700:{t['700']};
+        --brand-600:{t['600']};
+        --brand-050:{t['050']};
+      }}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+# ---------------------------------------------------------------------
+# QUERY PARAMS (page only)
+# ---------------------------------------------------------------------
+qp = st.query_params
+page = qp.get("page", DEFAULT_PAGE)
+if page not in ORDER:
+    page = DEFAULT_PAGE
+st.query_params["page"] = page  # normalize
 
-    if len(lats) == 0 or len(lons) == 0:
-        return dict(lat=0, lon=0), 1.3  # global default
+# ---------------------------------------------------------------------
+# BANNER
+# ---------------------------------------------------------------------
+st.markdown(
+    """
+    <div class="gv">
+      <div class="gv-banner">
+        <div class="gv-banner__inner">
+          <div class="gv-banner__title">Global Natural Disasters Dashboard</div>
+          <div class="gv-banner__subtitle">ICT305 · Data Visualisation and Simulation · Murdoch University · 2025</div>
+        </div>
+      </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-    lat_min, lat_max = float(lats.min()), float(lats.max())
-    lon_min, lon_max = float(lons.min()), float(lons.max())
-    center = dict(lat=(lat_min + lat_max) / 2.0, lon=(lon_min + lon_max) / 2.0)
-
-    lat_span = max(1e-6, lat_max - lat_min)
-    lon_span = max(1e-6, lon_max - lon_min)
-
-    k = 1.4
-    zoom_from_lon = math.log2(360.0 / (lon_span * k))
-    zoom_from_lat = math.log2(180.0 / (lat_span * k))
-    zoom = max(1.0, min(zoom_from_lon, zoom_from_lat))
-    zoom = min(8.0, zoom)
-
-    if lon_span < 0.01 and lat_span < 0.01:
-        zoom = 5.0
-
-    return center, zoom
-
-def _halo_rgba(hex_color: str) -> str:
-    base = hex_color.lstrip("#")
-    r = int(base[0:2], 16); g = int(base[2:4], 16); b = int(base[4:6], 16)
-    return f"rgba({r},{g},{b},0.25)"
-
-# ===========================
-# DATA HELPERS
-# ===========================
-def load_data():
-    merged_path = merge_datasets()
-    df = pd.read_csv(merged_path)
-    # Normalize column names to lowercase
-    df.columns = [col.lower().strip() for col in df.columns]
-    return df
-
-# ===========================
-# MAIN RENDER
-# ===========================
-def render():
-    df = load_data()
-    if df.empty:
-        st.warning("No data available for the Environmental Overview tab.")
-        st.stop()
-
-    # Sidebar filters
-    st.sidebar.header("Environmental Overview Filters")
-    years_min = int(df["start year"].min()) if "start year" in df else 2010
-    years_max = int(df["start year"].max()) if "start year" in df else 2025
-    years_selected = st.sidebar.slider(
-        "Select Year Range",
-        min_value=years_min,
-        max_value=years_max,
-        value=(years_min, years_max)
-    )
-
-    region_list = sorted(df["region"].dropna().unique()) if "region" in df.columns else []
-    region_selected = st.sidebar.selectbox("Select Region", ["All Regions"] + region_list)
-
-    # Filter data
-    df_filtered = df.copy()
-    if "start year" in df_filtered.columns:
-        df_filtered = df_filtered[
-            (df_filtered["start year"] >= years_selected[0]) & 
-            (df_filtered["start year"] <= years_selected[1])
-        ]
-    if region_selected != "All Regions" and "region" in df_filtered.columns:
-        df_filtered = df_filtered[df_filtered["region"] == region_selected]
-
-    # Title
-    section_title("Environmental Overview 🌍")
-    st.markdown(
-        "This section provides a global overview of natural disasters "
-        "between 2010–2025, combining data from EM-DAT and NASA EONET."
-    )
-
-    # -------------------------
-    # 1. Interactive Map
-    # -------------------------
-    subsection_title("Interactive Global Disaster Map")
-    df_map = df_filtered.dropna(subset=["latitude", "longitude"]) if "latitude" in df_filtered and "longitude" in df_filtered else pd.DataFrame()
-    if not df_map.empty:
-        fig_map = go.Figure()
-        main_size, ring_size, halo_size = 11, 14, 26
-        for lvl in df_map.get("disaster type standardized", "Unknown").fillna("Unknown").unique():
-            sub = df_map[df_map["disaster type standardized"].fillna("Unknown") == lvl]
-            color_hex = ALERT_COLORS.get(lvl, ALERT_COLORS["Unknown"])
-
-            # Halo
-            fig_map.add_trace(go.Scattermapbox(
-                lat=sub["latitude"], lon=sub["longitude"], mode="markers",
-                marker=dict(size=halo_size, color=[_halo_rgba(color_hex)] * len(sub)), hoverinfo="skip", showlegend=False
-            ))
-
-            # Ring
-            fig_map.add_trace(go.Scattermapbox(
-                lat=sub["latitude"], lon=sub["longitude"], mode="markers",
-                marker=dict(size=ring_size, color="white", symbol="circle"), hoverinfo="skip", showlegend=False
-            ))
-
-            # Prepare hover info
-            sub["location_display"] = sub["country"].fillna("—") + " / " + sub.get("region", pd.Series(["—"]*len(sub))).fillna("—")
-            sub["date_display"] = sub["event date"].apply(_fmt) if "event date" in sub.columns else "—"
-            sub["people_affected"] = sub.get("total affected", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) else "—")
-            sub["displaced"] = sub.get("no. homeless", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) else "—")
-            sub["deaths"] = sub.get("total deaths", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) else "—")
-            sub["economic_damage"] = sub.get("total damage ('000 us$')", pd.Series([0]*len(sub))).apply(lambda x: f"${x/1000:,.1f}K" if pd.notna(x) and x > 0 else "—")
-            sub["severity_level"] = sub.get("alert level", pd.Series(["Unknown"]*len(sub)))
-            sub["data_source"] = sub.get("source", pd.Series(["Unknown"]*len(sub)))
-            sub["event_id"] = sub.get("id", pd.Series(["—"]*len(sub)))
-
-            # Main
-            fig_map.add_trace(go.Scattermapbox(
-                lat=sub["latitude"],
-                lon=sub["longitude"],
-                mode="markers",
-                marker=dict(size=main_size, color=color_hex, symbol="circle"),
-                name=str(lvl),
-                customdata=sub[[
-                    "disaster type standardized",
-                    "location_display",
-                    "severity_level",
-                    "date_display",
-                    "people_affected",
-                    "displaced",
-                    "deaths",
-                    "economic_damage",
-                    "data_source",
-                    "event_id"
-                ]].astype(str),
-                hovertemplate=(
-                    "<b>%{customdata[0]}</b><br>"
-                    "Location: %{customdata[1]}<br>"
-                    "Severity: %{customdata[2]}<br>"
-                    "Date: %{customdata[3]}<br>"
-                    "People Affected: %{customdata[4]}<br>"
-                    "Displaced: %{customdata[5]}<br>"
-                    "Deaths: %{customdata[6]}<br>"
-                    "Economic Damage: %{customdata[7]}<br>"
-                    "Data Source: %{customdata[8]}<br>"
-                    "Event ID: %{customdata[9]}<extra></extra>"
-                )
-            ))
-
-        center, zoom = _center_zoom_from_points(df_map["latitude"], df_map["longitude"])
-        fig_map.update_layout(
-            margin=dict(l=0, r=0, t=10, b=0),
-            height=560,
-            hoverlabel=dict(font_size=14),
-            legend_title_text="Disaster Type",
-            uirevision=True,
-            mapbox=dict(style="carto-positron", center=center, zoom=zoom),
+# ---------------------------------------------------------------------
+# TOP HORIZONTAL MENU (boxed tabs)
+# ---------------------------------------------------------------------
+def top_menu_html(active_page: str) -> str:
+    items = []
+    for p in ORDER:
+        cls = "gv-m-item gv-m-item--active" if p == active_page else "gv-m-item"
+        items.append(
+            f'<div class="{cls}"><a class="gv-m-link" href="?page={p}" target="_self" rel="noopener">{p}</a></div>'
         )
-        st.plotly_chart(fig_map, use_container_width=True)
+    return '<nav class="gv-menu" aria-label="Primary Navigation">' + "".join(items) + "</nav>"
+
+st.markdown(top_menu_html(page), unsafe_allow_html=True)
+
+# Placeholder for the dropdown bar that sits DIRECTLY under the page tabs
+_subnav_placeholder = st.empty()
+
+# ---------------------------------------------------------------------
+# VERTICAL MENU (sidebar)
+# ---------------------------------------------------------------------
+def side_menu_html(active_page: str) -> str:
+    blocks = ['<div class="gv-side">']
+    for p in ORDER:
+        wrap_cls = "gv-side-item gv-side-item--active" if p == active_page else "gv-side-item"
+        blocks.append(
+            f'<div class="{wrap_cls}"><a class="gv-side-link" href="?page={p}" target="_self" rel="noopener">{p}</a></div>'
+        )
+    blocks.append("</div>")
+    return "".join(blocks)
+
+st.sidebar.markdown(side_menu_html(page), unsafe_allow_html=True)
+
+# Sidebar placeholder for the "Go to section" dropdown (we'll render with components.html)
+_side_subnav_placeholder = st.sidebar.empty()
+
+# ---------------------------------------------------------------------
+# SECTION CAPTURE (no edits to page files)
+# - Intercepts st.markdown while a page renders.
+# - Any .gv-section-title gets an anchor injected and is registered.
+# ---------------------------------------------------------------------
+def _slugify(text: str) -> str:
+    txt = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    txt = re.sub(r"[^a-zA-Z0-9]+", "-", txt).strip("-").lower()
+    return txt or "section"
+
+if "gv_sections" not in st.session_state:
+    st.session_state["gv_sections"] = {}   # {page: [(label, id), ...]}
+
+def _reset_page_sections(current_page: str):
+    st.session_state["gv_sections"][current_page] = []
+
+def _register_section(current_page: str, label: str) -> str:
+    base = f"sec-{_slugify(label)}"
+    existing = {sid for _, sid in st.session_state["gv_sections"].get(current_page, [])}
+    anchor = base
+    n = 2
+    while anchor in existing:
+        anchor = f"{base}-{n}"
+        n += 1
+    st.session_state["gv_sections"].setdefault(current_page, []).append((label, anchor))
+    return anchor
+
+@contextmanager
+def capture_sections(current_page: str):
+    """Intercept .gv-section-title outputs to:
+       1) prepend an anchor <div id='sec-...'></div>
+       2) register the section for both dropdowns
+    """
+    _reset_page_sections(current_page)
+    original_markdown = st.markdown
+
+    def patched_markdown(body, *args, **kwargs):
+        try:
+            if isinstance(body, str) and 'class="gv-section-title"' in body:
+                m = re.search(r'gv-section-title">(.*?)</div>', body, flags=re.DOTALL | re.IGNORECASE)
+                if m:
+                    raw = html.unescape(m.group(1))
+                    label = re.sub(r"<.*?>", "", raw).strip()
+                    if label:
+                        anchor_id = _register_section(current_page, label)
+                        body = f"<div id='{anchor_id}'></div>" + body
+        except Exception:
+            pass
+        return original_markdown(body, *args, **kwargs)
+
+    st.markdown = patched_markdown
+    try:
+        yield
+    finally:
+        st.markdown = original_markdown
+
+# ---------------------------------------------------------------------
+# PAGE / SECTION TITLE HELPERS
+# (Page modules already render their own .gv-section-title — we leave them.)
+# ---------------------------------------------------------------------
+def gv_page_title(text: str):
+    st.markdown(f'<div class="gv-page-title">{text}</div>', unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------
+# DROPDOWNS (horizontal under tabs, and sidebar)
+# - Both use #anchor links -> no rerun, just scroll.
+# - Horizontal reuses .gv-menu / .gv-m-link boxes (nav style).
+# - Sidebar uses components.html to avoid HTML escaping and reuses .gv-side-link style.
+# ---------------------------------------------------------------------
+def render_sections_dropdown(current_page: str):
+    secs = st.session_state["gv_sections"].get(current_page, [])
+    if not secs:
+        _subnav_placeholder.empty()
     else:
-        st.info("No geolocation data available for the selected filters.")
+        items = []
+        for label, sid in secs:
+            items.append(f'<div class="gv-m-item"><a class="gv-m-link" href="#{sid}">{label}</a></div>')
 
-    # -------------------------
-    # 2. Total Disasters Over Time
-    # -------------------------
-    subsection_title("Total Disasters Over Time")
-    if "start year" in df_filtered.columns:
-        df_yearly = df_filtered.groupby("start year").size().reset_index(name="count")
-        if not df_yearly.empty:
-            fig_line = px.line(
-                df_yearly,
-                x="start year",
-                y="count",
-                markers=True,
-                labels={"start year": "Year", "count": "Number of Disasters"},
-                title="Number of Disasters per Year"
-            )
-            st.plotly_chart(fig_line, use_container_width=True)
-        else:
-            st.info("No data for selected years.")
+        html_dropdown = f"""
+        <nav class="gv-menu" aria-label="Section Navigation" style="margin-top:-8px;">
+          <div class="gv-m-item" style="display:block;">
+            <details class="gv-sections-details">
+              <summary class="gv-m-link" style="list-style:none; cursor:pointer;">
+                Go to section ▾
+              </summary>
+              <div class="gv-sections-panel">
+                {''.join(items)}
+              </div>
+            </details>
+          </div>
+        </nav>
+        """
+        _subnav_placeholder.markdown(html_dropdown, unsafe_allow_html=True)
 
-    # -------------------------
-    # 3. Top 10 Disaster Types
-    # -------------------------
-    subsection_title("Top 10 Disaster Types")
-    type_col = "disaster type standardized" if "disaster type standardized" in df_filtered.columns else "disaster type"
-    if type_col in df_filtered.columns:
-        df_types = df_filtered[type_col].value_counts().head(10).reset_index()
-        df_types.columns = ["Disaster Type", "Count"]
-        if not df_types.empty:
-            fig_bar = px.bar(
-                df_types,
-                x="Disaster Type",
-                y="Count",
-                color="Disaster Type",
-                color_discrete_sequence=px.colors.sequential.Reds,
-                title="Top 10 Disaster Types"
-            )
-            st.plotly_chart(fig_bar, use_container_width=True)
-        else:
-            st.info("No disaster type data for selected filters.")
+def render_sidebar_sections_dropdown(current_page: str):
+    """Sidebar 'Go to section ▾' — renders as real HTML (no iframe), no rerun."""
+    secs = st.session_state["gv_sections"].get(current_page, [])
+    _side_subnav_placeholder.empty()
+    if not secs:
+        return
 
-    # Footer
-    st.markdown("---")
-    st.caption("Data source: EM-DAT & NASA EONET | Visualization: GioVision Dashboard")
+    # Build items with NO leading spaces so Markdown doesn't turn it into a code block
+    items = "".join(
+        f'<div class="gv-side-item" style="margin:6px 10px 0 18px;"><a class="gv-side-link" href="#{sid}">{label}</a></div>'
+        for label, sid in secs
+    )
+
+    sidebar_html = (
+        '<div class="gv-side" style="margin-top:6px;">'
+        '<details>'
+        '<summary class="gv-side-link" style="list-style:none; cursor:pointer; display:block;">Go to section ▾</summary>'
+        f'{items}'
+        '</details>'
+        '</div>'
+    )
+
+    _side_subnav_placeholder.markdown(sidebar_html, unsafe_allow_html=True)
+# ---------------------------------------------------------------------
+# ROUTING
+# ---------------------------------------------------------------------
+def page_home():
+    # Example section (your real pages already output .gv-section-title themselves)
+    st.markdown('<div class="gv-section-title">Overview</div>', unsafe_allow_html=True)
+    st.write("*GeoVision* aggregates global disaster information for academic analysis and insight.")
+
+# 1) Page title
+gv_page_title(page)
+
+# 2) Render the selected page while capturing section blocks it emits
+with capture_sections(page):
+    if page == "Home":
+        page_home()
+    elif page == "Alerts":
+        alerts_tab.render()
+    elif page == "Environmental Overview":
+        environmental_overview_tab.render()
+    elif page == "Impact of Natural Disasters":
+        impact_tab.render()
+    elif page == "Disaster Analysis":
+        disaster_analysis_tab.render()
+    elif page == "Hypothesis":
+        hypothesis_tab.render()
+
+# 3) After capture, print dropdown under top tabs + in sidebar
+render_sections_dropdown(page)
+render_sidebar_sections_dropdown(page)
+
+# ---------------------------------------------------------------------
+# FOOTER
+# ---------------------------------------------------------------------
+st.markdown(
+    '<div class="gv-separator"></div><div class="gv-footer">Working version — functionality and visuals are being expanded.</div></div>',
+    unsafe_allow_html=True,
+)
