@@ -20,15 +20,12 @@ from src.utils.merge_datasets import merge_datasets
 # THEME HELPERS
 # ===========================
 def _anchor(id_: str):
-    """Invisible HTML anchor for smooth scrolling targets."""
     st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
 
 def section_title(text: str):
-    """Theme-aligned section bar (matches app theme)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
 def subsection_title(text: str):
-    """Theme-aligned subsection bar (matches app theme)."""
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
 
 def _fmt(dt):
@@ -51,29 +48,22 @@ ALERT_COLORS = {
 # MAP HELPERS
 # ===========================
 def _center_zoom_from_points(lat_series: pd.Series, lon_series: pd.Series):
-    """Compute approximate (center, zoom) for Mapbox from bounds."""
     lats = pd.to_numeric(lat_series, errors="coerce").dropna()
     lons = pd.to_numeric(lon_series, errors="coerce").dropna()
-
     if len(lats) == 0 or len(lons) == 0:
-        return dict(lat=0, lon=0), 1.3  # global default
-
+        return dict(lat=0, lon=0), 1.3
     lat_min, lat_max = float(lats.min()), float(lats.max())
     lon_min, lon_max = float(lons.min()), float(lons.max())
     center = dict(lat=(lat_min + lat_max) / 2.0, lon=(lon_min + lon_max) / 2.0)
-
     lat_span = max(1e-6, lat_max - lat_min)
     lon_span = max(1e-6, lon_max - lon_min)
-
     k = 1.4
     zoom_from_lon = math.log2(360.0 / (lon_span * k))
     zoom_from_lat = math.log2(180.0 / (lat_span * k))
     zoom = max(1.0, min(zoom_from_lon, zoom_from_lat))
     zoom = min(8.0, zoom)
-
     if lon_span < 0.01 and lat_span < 0.01:
         zoom = 5.0
-
     return center, zoom
 
 def _halo_rgba(hex_color: str) -> str:
@@ -87,7 +77,6 @@ def _halo_rgba(hex_color: str) -> str:
 def load_data():
     merged_path = merge_datasets()
     df = pd.read_csv(merged_path)
-    # Normalize column names to lowercase
     df.columns = [col.lower().strip() for col in df.columns]
     return df
 
@@ -110,7 +99,6 @@ def render():
         max_value=years_max,
         value=(years_min, years_max)
     )
-
     region_list = sorted(df["region"].dropna().unique()) if "region" in df.columns else []
     region_selected = st.sidebar.selectbox("Select Region", ["All Regions"] + region_list)
 
@@ -140,7 +128,7 @@ def render():
         fig_map = go.Figure()
         main_size, ring_size, halo_size = 11, 14, 26
         for lvl in df_map.get("disaster type standardized", "Unknown").fillna("Unknown").unique():
-            sub = df_map[df_map["disaster type standardized"].fillna("Unknown") == lvl]
+            sub = df_map[df_map.get("disaster type standardized", pd.Series(["Unknown"]*len(df_map))).fillna("Unknown") == lvl]
             color_hex = ALERT_COLORS.get(lvl, ALERT_COLORS["Unknown"])
 
             # Halo
@@ -155,16 +143,16 @@ def render():
                 marker=dict(size=ring_size, color="white", symbol="circle"), hoverinfo="skip", showlegend=False
             ))
 
-            # Prepare hover info
-            sub["location_display"] = sub["country"].fillna("—") + " / " + sub.get("region", pd.Series(["—"]*len(sub))).fillna("—")
-            sub["date_display"] = sub["event date"].apply(_fmt) if "event date" in sub.columns else "—"
-            sub["people_affected"] = sub.get("total affected", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) else "—")
-            sub["displaced"] = sub.get("no. homeless", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) else "—")
-            sub["deaths"] = sub.get("total deaths", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) else "—")
-            sub["economic_damage"] = sub.get("total damage ('000 us$')", pd.Series([0]*len(sub))).apply(lambda x: f"${x/1000:,.1f}K" if pd.notna(x) and x > 0 else "—")
-            sub["severity_level"] = sub.get("alert level", pd.Series(["Unknown"]*len(sub)))
-            sub["data_source"] = sub.get("source", pd.Series(["Unknown"]*len(sub)))
-            sub["event_id"] = sub.get("id", pd.Series(["—"]*len(sub)))
+            # Prepare hover info with fallbacks
+            sub["location_display"] = sub.get("country", "—") + " / " + sub.get("region", "—")
+            sub["date_display"] = sub.get("event date", pd.Series(["—"]*len(sub))).apply(_fmt)
+            sub["people_affected"] = sub.get("total affected", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) and x>0 else "—")
+            sub["displaced"] = sub.get("no. homeless", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) and x>0 else "—")
+            sub["deaths"] = sub.get("total deaths", pd.Series([0]*len(sub))).apply(lambda x: f"{int(x):,}" if pd.notna(x) and x>0 else "—")
+            sub["economic_damage"] = sub.get("total damage ('000 us$')", sub.get("total damage", pd.Series([0]*len(sub)))).apply(lambda x: f"${x/1000:,.1f}K" if pd.notna(x) and x>0 else "—")
+            sub["severity_level"] = sub.get("alert level", "Unknown")
+            sub["data_source"] = sub.get("source", sub.get("source url", "Unknown"))
+            sub["event_id"] = sub.get("id", sub.get("event id", "—"))
 
             # Main
             fig_map.add_trace(go.Scattermapbox(
