@@ -17,12 +17,21 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-from dashboard.components import (
-    environmental_overview_tab,
-    impact_tab,
-    disaster_analysis_tab,
-    alerts_tab,
-    hypothesis_tab,
+# (optional) confirm it's added
+# print("Python path includes:", ROOT)
+
+
+import streamlit as st
+from dashboard.components import home_tab, environmental_overview_tab, impact_tab, disaster_analysis_tab, alerts_tab, hypothesis_tab
+from src.utils import style_config
+
+# ----------------------------
+# PAGE CONFIGURATION
+# ----------------------------
+st.set_page_config(
+    page_title="GeoVision Disaster Dashboard",
+    page_icon="🌍",
+    layout="wide"
 )
 from src.utils import style_config
 
