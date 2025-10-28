@@ -40,7 +40,7 @@ def render():
     st.subheader("Project & Team")
     st.markdown(
         """
-        **Team GeoVision** — Fatima, Minal, Alena, Zhyldyz, and Aleena 
+        **Team GeoVision** — Aleena, Fatima, Minal, Alena, and Zhyldyz
         Course: ICT305 — Data Visualisation and Simulation, Murdoch University (2025).  
         Repo: `GioVision-Disaster-Dashboard` on GitHub.
         """
