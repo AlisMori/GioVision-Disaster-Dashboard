@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path:
 
 
 import streamlit as st
-from dashboard.components import environmental_overview_tab, impact_tab, disaster_analysis_tab, alerts_tab, hypothesis_tab
+from dashboard.components import home_tab, environmental_overview_tab, impact_tab, disaster_analysis_tab, alerts_tab, hypothesis_tab
 from src.utils import style_config
 
 # ----------------------------
@@ -58,13 +58,15 @@ st.caption("ICT305 – Data Visualisation and Simulation | Murdoch University, 2
 st.sidebar.header("Navigation")
 page = st.sidebar.radio(
     "Go to",
-    ["Environmental Overview", "Impact of Natural Disasters", "Disaster Analysis", "Alerts", "Hypothesis"]
+    ["Home", "Environmental Overview", "Impact of Natural Disasters", "Disaster Analysis", "Alerts", "Hypothesis"]
 )
 
 # ----------------------------
 # PAGE ROUTING LOGIC
 # ----------------------------
-if page == " Environmental Overview":
+if page == "Home":
+    home_tab.render()
+elif page == "Environmental Overview":
     environmental_overview_tab.render()
 elif page == "Impact of Natural Disasters":
     impact_tab.render()
@@ -76,7 +78,6 @@ elif page == "Hypothesis":
     hypothesis_tab.render()
 else:
     st.warning("This section is under construction.")
-
 # ----------------------------
 # FOOTER MESSAGE
 # ----------------------------
