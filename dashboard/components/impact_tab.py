@@ -86,7 +86,7 @@ def render():
     # ---- Overview ----
     _anchor("sec-impact-overview")
     section_title("Overview")
-    st.caption("Analysis of human impact from the EM-DAT dataset (cleaned).")
+    st.markdown("Analysis of human impact from the EM-DAT dataset (cleaned).")
 
     # ---- Sticky CSS (unchanged) ----
     st.markdown("""

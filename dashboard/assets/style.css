@@ -108,6 +108,14 @@
   text-decoration:none !important;
 }
 
+/* lighter section boxes inside pages */
+.gv-section-title{
+  background:#f9fafb;              /* was #ffffff */
+  border:1px solid #ececec;        /* a touch lighter */
+}
+
+/* make anchors land cleanly below the banner + menus */
+.gv-section-title{ scroll-margin-top: 96px; }
 
 /* ========= PAGE / SECTION / SUBSECTION BARS ========= */
 .gv-page-title{
