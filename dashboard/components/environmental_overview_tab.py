@@ -1,6 +1,6 @@
 """
-environmental_overview_tab.py
----------------
+Environmental Overview Tab
+
 Displays key statistics and a high-level overview of global disaster data,
 including a styled map consistent with the Alerts tab (Carto-Positron with
 halo/ring/main markers).
@@ -12,6 +12,12 @@ import pandas as pd
 import plotly.express as px
 from plotly import graph_objects as go
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+import os
+
+# Import the merge function
+from src.utils.merge_datasets import merge_datasets
 
 # TODO implement the environmental overview page
 
