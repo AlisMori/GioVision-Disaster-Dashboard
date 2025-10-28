@@ -3,8 +3,8 @@ import pandas as pd
 import os
 
 # Paths to your CSVs
-emdat_path = os.path.join("data", "emdat_cleaned.csv")
-eonet_path = os.path.join("data", "eonet_cleaned.csv")
+emdat_path = os.path.join("data", "processed", "emdat_cleaned.csv")
+eonet_path = os.path.join("data", "processed", "eonet_cleaned.csv")
 output_path = os.path.join("data", "processed", "merged_emdat_eonet.csv")
 
 # Create 'processed' folder if it doesn't exist

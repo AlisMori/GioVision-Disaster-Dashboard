@@ -64,7 +64,7 @@ page = st.sidebar.radio(
 # ----------------------------
 # PAGE ROUTING LOGIC
 # ----------------------------
-if page == " Environmental Overview":
+if page == "Environmental Overview":
     environmental_overview_tab.render()
 elif page == "Impact of Natural Disasters":
     impact_tab.render()
