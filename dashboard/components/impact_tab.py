@@ -13,6 +13,22 @@ import os
 
 
 # --------------------------------------
+# THEME HELPERS (anchors + section bars)
+# --------------------------------------
+def _anchor(id_: str):
+    """Invisible HTML anchor for smooth scrolling targets."""
+    st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
+
+def section_title(text: str):
+    """Theme-aligned section bar."""
+    st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
+
+def subsection_title(text: str):
+    """Theme-aligned subsection bar."""
+    st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
+
+
+# --------------------------------------
 # Load and Prepare Data
 # --------------------------------------
 @st.cache_data
@@ -21,6 +37,7 @@ def load_emdat_data():
         "data/processed/emdat_cleaned.csv",
         "data/emdat_cleaned.csv",
         "dashboard/data/emdat_cleaned.csv",
+        "../data/processed/emdat_cleaned.csv",
     ]
 
     df = None
@@ -66,10 +83,12 @@ def load_emdat_data():
 # Visualization Logic
 # --------------------------------------
 def render():
-    st.header("🌍 Impact of Natural Disasters")
-    st.caption("Analysis of human impact from the EM-DAT dataset (cleaned).")
+    # ---- Overview ----
+    _anchor("sec-impact-overview")
+    section_title("Overview")
+    st.markdown("Analysis of human impact from the EM-DAT dataset (cleaned).")
 
-    # ---- Add sticky CSS ----
+    # ---- Sticky CSS (unchanged) ----
     st.markdown("""
     <style>
     /* Sticky filter box */
@@ -99,7 +118,7 @@ def render():
     # Fixed Filter Panel (Right)
     # --------------------------------------
     with col_filter:
-        st.markdown("### 🔧 Filters")
+        subsection_title("Filters")
         st.markdown('<div class="sticky-filter">', unsafe_allow_html=True)
 
         years = sorted(df["Start Year"].dropna().unique())
@@ -132,8 +151,9 @@ def render():
     with col_main:
         st.markdown("---")
 
-        # ===== 1️⃣ Global Overview (Improved Choropleth Map) =====
-        st.subheader(f"🌎 Global {selected_metric} by Country")
+        # ===== 1️⃣ Global Overview (Choropleth Map) =====
+        _anchor("sec-impact-global-map")
+        section_title(f"Global {selected_metric} by Country")
 
         map_data = filtered_df.groupby("Country", as_index=False)[metric_col].sum()
         fig_map = px.choropleth(
@@ -164,7 +184,9 @@ def render():
         st.plotly_chart(fig_map, use_container_width=True)
 
         # ===== 2️⃣ Top 10 Countries =====
-        st.subheader(f"🏆 Top 10 Countries by {selected_metric}")
+        st.markdown("---")
+        _anchor("sec-impact-top10")
+        subsection_title(f"Top 10 Countries by {selected_metric}")
         top10 = map_data.sort_values(metric_col, ascending=False).head(10)
         fig_bar = px.bar(
             top10,
@@ -183,7 +205,9 @@ def render():
         st.plotly_chart(fig_bar, use_container_width=True)
 
         # ===== 3️⃣ Distribution by Disaster Type =====
-        st.subheader(f"📊 Distribution of {selected_metric} by Disaster Type")
+        st.markdown("---")
+        _anchor("sec-impact-distribution")
+        section_title(f"Distribution of {selected_metric} by Disaster Type")
         disaster_df = filtered_df.groupby("Disaster Type", as_index=False)[metric_col].sum()
         fig_pie = px.pie(
             disaster_df,
@@ -196,7 +220,9 @@ def render():
         st.plotly_chart(fig_pie, use_container_width=True)
 
         # ===== 4️⃣ Yearly Trend =====
-        st.subheader(f"📈 Trend of {selected_metric} Over Time")
+        st.markdown("---")
+        _anchor("sec-impact-trend")
+        section_title(f"Trend of {selected_metric} Over Time")
         trend_df = filtered_df.groupby("Start Year", as_index=False)[metric_col].sum()
         fig_line = px.line(
             trend_df,
@@ -209,7 +235,9 @@ def render():
         st.plotly_chart(fig_line, use_container_width=True)
 
         # ===== 5️⃣ Comparative Analysis =====
-        st.subheader("🔍 Comparative Analysis")
+        st.markdown("---")
+        _anchor("sec-impact-compare")
+        section_title("Comparative Analysis")
 
         comparison_mode = st.selectbox(
             "Compare by:",
@@ -219,7 +247,7 @@ def render():
         st.markdown("---")
 
         if comparison_mode == "Country":
-            st.write(f"#### Top 20 Countries by {selected_metric}")
+            subsection_title(f"Top 20 Countries by {selected_metric}")
 
             comp_df = (
                 filtered_df.groupby("Country", as_index=False)[metric_col]
@@ -256,7 +284,7 @@ def render():
             st.plotly_chart(fig_comp, use_container_width=True)
 
         elif comparison_mode == "Disaster Type":
-            st.write(f"#### {selected_metric} by Disaster Type")
+            subsection_title(f"{selected_metric} by Disaster Type")
             comp_df = filtered_df.groupby("Disaster Type", as_index=False)[metric_col].sum()
             fig_comp = px.bar(
                 comp_df,
@@ -275,7 +303,7 @@ def render():
             st.plotly_chart(fig_comp, use_container_width=True)
 
         else:  # Time Period
-            st.write(f"#### {selected_metric} Over Time")
+            subsection_title(f"{selected_metric} Over Time")
             comp_df = filtered_df.groupby("Start Year", as_index=False)[metric_col].sum()
             fig_comp = px.area(
                 comp_df,
@@ -288,7 +316,9 @@ def render():
             st.plotly_chart(fig_comp, use_container_width=True)
 
         # ===== 6️⃣ Country-Level Analysis =====
-        st.subheader("🏳️ Country-Level Analysis")
+        st.markdown("---")
+        _anchor("sec-impact-country")
+        section_title("Country-Level Analysis")
         selected_country = st.selectbox(
             "Select a Country for Detailed Analysis",
             sorted(filtered_df["Country"].unique())
@@ -307,7 +337,7 @@ def render():
             st.metric("Total Affected", f"{int(total_affected):,}")
 
         with col2:
-            st.write("#### Trend of Total Affected Over Time")
+            subsection_title("Trend of Total Affected Over Time")
             trend_country = country_df.groupby("Start Year", as_index=False)["Total Affected"].sum()
             fig_country_line = px.line(
                 trend_country, x="Start Year", y="Total Affected",
@@ -315,7 +345,7 @@ def render():
             )
             st.plotly_chart(fig_country_line, use_container_width=True)
 
-        st.write("#### Top Disaster Types in Selected Country")
+        subsection_title("Top Disaster Types in Selected Country")
         type_df = country_df.groupby("Disaster Type", as_index=False)["Total Affected"].sum().sort_values(
             "Total Affected", ascending=False)
         fig_country_bar = px.bar(
@@ -329,7 +359,9 @@ def render():
         st.plotly_chart(fig_country_bar, use_container_width=True)
 
         # ===== 7️⃣ Correlation Analysis =====
-        st.subheader("📈 Correlation Between Impact Metrics")
+        st.markdown("---")
+        _anchor("sec-impact-corr")
+        section_title("Correlation Between Impact Metrics")
         corr_df = filtered_df.groupby("Disaster Type", as_index=False)[
             ["Total Deaths", "No. Injured", "Total Affected"]
         ].sum()
@@ -343,6 +375,7 @@ def render():
         )
         st.plotly_chart(fig_corr, use_container_width=True)
 
+        subsection_title("Scatter Comparison")
         metric_x = st.selectbox("Select X-axis metric", ["Total Deaths", "No. Injured", "Total Affected"])
         metric_y = st.selectbox("Select Y-axis metric", ["Total Deaths", "No. Injured", "Total Affected"], index=2)
         fig_scatter = px.scatter(
@@ -355,4 +388,5 @@ def render():
         st.plotly_chart(fig_scatter, use_container_width=True)
 
         st.markdown("---")
-        st.info("📊 Data Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")
+        st.caption("Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")
+
