@@ -1,9 +1,24 @@
+
 # ======================================
 # ENVIRONMENTAL OVERVIEW TAB
 # ======================================
 
 import os
 import math
+"""
+Environmental Overview Tab
+
+Displays key statistics and a high-level overview of global disaster data,
+including a styled map consistent with the Alerts tab (Carto-Positron with
+halo/ring/main markers).
+"""
+
+import os
+import math
+import pandas as pd
+import plotly.express as px
+from plotly import graph_objects as go
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -11,12 +26,36 @@ import streamlit as st
 
 from src.utils.merge_datasets import merge_datasets  # Make sure this exists
 
-# ===========================
-# CONSTANTS
-# ===========================
-DEFAULT_START = 2010
-DEFAULT_END = 2025
+# TODO implement the environmental overview page
 
+# the following code is just the example of the analyses
+# please do not make the same analyses here, but if you can it would be better if you used the same style for the map for the consistency 
+
+# ===========================
+# THEME HELPERS
+# ===========================
+def _anchor(id_: str):
+    """Invisible HTML anchor for smooth scrolling targets."""
+    st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
+
+def section_title(text: str):
+    """Theme-aligned section bar (matches app theme)."""
+    st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
+
+def subsection_title(text: str):
+    """Theme-aligned subsection bar (matches app theme)."""
+    st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
+
+def _fmt(dt):
+    try:
+        return pd.to_datetime(dt).strftime("%Y-%m-%d")
+    except Exception:
+        return "—"
+
+
+# ===========================
+# PALETTE (match app)
+# ===========================
 ALERT_COLORS = {
     "Red":    "#EA6455",
     "Orange": "#EFB369",
@@ -24,40 +63,12 @@ ALERT_COLORS = {
     "Unknown":"#8A8A8A",
 }
 
-MERGED_PATHS = [
-    "data/processed/merged_emdat_eonet.csv",
-    "../data/processed/merged_emdat_eonet.csv",
-    "../../data/processed/merged_emdat_eonet.csv",
-    "dashboard/data/processed/merged_emdat_eonet.csv",
-]
 
 # ===========================
-# HELPERS
+# MAP HELPERS (same style as Alerts)
 # ===========================
-def _first_existing_path(paths):
-    for p in paths:
-        if os.path.exists(p):
-            return p
-    return None
-
-def load_merged(path):
-    """Load merged CSV and normalize column names"""
-    df = pd.read_csv(path)
-    df.columns = [col.lower().strip() for col in df.columns]
-    return df
-
-def section_title(text: str):
-    st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
-
-def subsection_title(text: str):
-    st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
-
-def _halo_rgba(hex_color: str) -> str:
-    base = hex_color.lstrip("#")
-    r = int(base[0:2], 16); g = int(base[2:4], 16); b = int(base[4:6], 16)
-    return f"rgba({r},{g},{b},0.25)"
-
 def _center_zoom_from_points(lat_series: pd.Series, lon_series: pd.Series):
+    """Compute approximate (center, zoom) for Mapbox from bounds (no fitbounds)."""
     lats = pd.to_numeric(lat_series, errors="coerce").dropna()
     lons = pd.to_numeric(lon_series, errors="coerce").dropna()
 
@@ -66,132 +77,152 @@ def _center_zoom_from_points(lat_series: pd.Series, lon_series: pd.Series):
 
     lat_min, lat_max = float(lats.min()), float(lats.max())
     lon_min, lon_max = float(lons.min()), float(lons.max())
-    center = dict(lat=(lat_min + lat_max)/2, lon=(lon_min + lon_max)/2)
+
+    center = dict(lat=(lat_min + lat_max) / 2.0, lon=(lon_min + lon_max) / 2.0)
 
     lat_span = max(1e-6, lat_max - lat_min)
     lon_span = max(1e-6, lon_max - lon_min)
+
     k = 1.4
     zoom_from_lon = math.log2(360.0 / (lon_span * k))
     zoom_from_lat = math.log2(180.0 / (lat_span * k))
     zoom = max(1.0, min(zoom_from_lon, zoom_from_lat))
     zoom = min(8.0, zoom)
+
     if lon_span < 0.01 and lat_span < 0.01:
         zoom = 5.0
+
     return center, zoom
 
-def _fmt(dt):
-    try:
-        return pd.to_datetime(dt).strftime("%Y-%m-%d")
-    except Exception:
-        return "—"
+def _halo_rgba(hex_color: str) -> str:
+    base = hex_color.lstrip("#")
+    r = int(base[0:2], 16); g = int(base[2:4], 16); b = int(base[4:6], 16)
+    return f"rgba({r},{g},{b},0.25)"
+
 
 # ===========================
 # MAIN RENDER
 # ===========================
 def render():
-    """Render Environmental Overview tab with 3 visuals"""
-    
-    # Ensure merged CSV exists
-    merged_path = _first_existing_path(MERGED_PATHS)
-    if not merged_path:
-        st.warning("Merged dataset not found. Generating it...")
-        merged_path = merge_datasets()  # create it if missing
+    """Render the Environmental Overview tab."""
+    # ---- OVERVIEW ----
+    _anchor("sec-env-overview")
+    section_title("Overview")
+    st.markdown(
+        "This section presents high-level environmental and disaster context, including a global map "
+        "styled consistently with the Alerts page. Replace the placeholder points with your own summary "
+        "locations (e.g., country centroids, recent hotspots, or representative monitoring sites)."
+    )
 
-    df = load_merged(merged_path)
-
-    if df.empty:
-        st.warning("Merged dataset is empty.")
-        return
-
-    # Sidebar filters
-    st.sidebar.header("Environmental Overview Filters")
-    years_min = int(df["start year"].min()) if "start year" in df.columns else DEFAULT_START
-    years_max = int(df["start year"].max()) if "start year" in df.columns else DEFAULT_END
-    years_selected = st.sidebar.slider("Select Year Range", years_min, years_max, (years_min, years_max))
-    
-    region_list = sorted(df["region"].dropna().unique()) if "region" in df.columns else []
-    region_selected = st.sidebar.selectbox("Select Region", ["All Regions"] + region_list)
-
-    # Filter data
-    df_filtered = df.copy()
-    if "start year" in df_filtered.columns:
-        df_filtered = df_filtered[(df_filtered["start year"] >= years_selected[0]) & 
-                                  (df_filtered["start year"] <= years_selected[1])]
-    if region_selected != "All Regions" and "region" in df_filtered.columns:
-        df_filtered = df_filtered[df_filtered["region"] == region_selected]
-
-    # --------------------------
-    # TITLE
-    # --------------------------
-    section_title("Environmental Overview 🌍")
-    st.markdown("Global overview of natural disasters combining EM-DAT & EONET datasets.")
-
-    # --------------------------
-    # 1. Interactive Map
-    # --------------------------
-    subsection_title("Interactive Global Disaster Map")
-    if "latitude" in df_filtered.columns and "longitude" in df_filtered.columns:
-        df_map = df_filtered.dropna(subset=["latitude","longitude"])
-        if not df_map.empty:
-            fig = px.scatter_mapbox(
-                df_map,
-                lat="latitude",
-                lon="longitude",
-                color="disaster type standardized" if "disaster type standardized" in df_map.columns else "disaster type",
-                hover_name="event name" if "event name" in df_map.columns else None,
-                hover_data=["country","region","start year"],
-                mapbox_style="carto-positron",
-                zoom=1,
-                height=600
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No geolocation data for the selected filters.")
-    else:
-        st.info("Latitude/Longitude columns not found in dataset.")
-
-    # --------------------------
-    # 2. Total Disasters Over Time
-    # --------------------------
-    subsection_title("Total Disasters Over Time")
-    if "start year" in df_filtered.columns:
-        df_yearly = df_filtered.groupby("start year").size().reset_index(name="count")
-        if not df_yearly.empty:
-            fig_line = px.line(
-                df_yearly,
-                x="start year",
-                y="count",
-                markers=True,
-                labels={"count":"Number of Disasters"},
-                title="Number of Disasters per Year"
-            )
-            st.plotly_chart(fig_line, use_container_width=True)
-        else:
-            st.info("No data available for this time period.")
-
-    # --------------------------
-    # 3. Top 10 Disaster Types
-    # --------------------------
-    subsection_title("Top 10 Disaster Types")
-    type_col = "disaster type standardized" if "disaster type standardized" in df_filtered.columns else "disaster type"
-    if type_col in df_filtered.columns:
-        df_types = df_filtered[type_col].value_counts().head(10).reset_index()
-        df_types.columns = ["Disaster Type","Count"]
-        if not df_types.empty:
-            fig_bar = px.bar(
-                df_types,
-                x="Disaster Type",
-                y="Count",
-                color="Disaster Type",
-                color_discrete_sequence=px.colors.sequential.Reds,
-                title="Top 10 Disaster Types"
-            )
-            st.plotly_chart(fig_bar, use_container_width=True)
-        else:
-            st.info("No disaster type data for selected filters.")
-
-    # --------------------------
-    # FOOTER
-    # --------------------------
+    # ---- KEY STATS (placeholders) ----
     st.markdown("---")
-    st.caption("Data source: EM-DAT & NASA EONET | Visualization: GioVision Dashboard")
+    subsection_title("Key Statistics (Placeholder)")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.metric("Countries Covered", "190+")
+    with c2:
+        st.metric("Events (YTD)", "2,430")
+    with c3:
+        st.metric("People Affected (YTD)", "18.2M")
+    with c4:
+        st.metric("Red-Level Share", "12%")
+
+    # ---- MAP (styled like Alerts, but with neutral data) ----
+    st.markdown("---")
+    _anchor("sec-env-map")
+    section_title("Global Situational Map")
+
+    # Placeholder points: change this to your aggregated/overview dataset.
+    # Required columns: Latitude, Longitude
+    # Optional columns: Level (Red/Orange/Green/Unknown), Name, Country, Start, End, Severity
+    overview_points = pd.DataFrame(
+        [
+            {"Name": "Andes Cluster",  "Country": "Peru",     "Latitude": -13.5, "Longitude": -71.9, "Level": "Orange", "Start": "2025-10-01", "End": None,        "Severity": "Moderate"},
+            {"Name": "Mediterranean",  "Country": "Italy",    "Latitude":  41.9, "Longitude":  12.5, "Level": "Green",  "Start": "2025-09-20", "End": "2025-10-05","Severity": "Low"},
+            {"Name": "South Asia Hub", "Country": "India",    "Latitude":  22.8, "Longitude":  78.9, "Level": "Red",    "Start": "2025-10-15", "End": None,        "Severity": "High"},
+            {"Name": "SEA Watch",      "Country": "Philippines","Latitude": 12.9, "Longitude": 121.8, "Level": "Orange", "Start": "2025-10-18", "End": None,        "Severity": "Elevated"},
+            {"Name": "East Africa",    "Country": "Kenya",    "Latitude":  -0.0, "Longitude":  37.9, "Level": "Unknown","Start": None,         "End": None,        "Severity": "—"},
+        ]
+    )
+
+    # Build hover HTML similar to Alerts
+    dfm = overview_points.copy()
+    dfm["_start_dt"] = pd.to_datetime(dfm.get("Start"), errors="coerce", utc=True)
+    dfm["_end_dt"]   = pd.to_datetime(dfm.get("End"),   errors="coerce", utc=True)
+
+    name     = dfm.get("Name", "Location").fillna("Location")
+    country  = dfm.get("Country", "—").fillna("—")
+    level    = dfm.get("Level", "Unknown").fillna("Unknown")
+    severity = dfm.get("Severity", "—").fillna("—")
+
+    dfm["hover"] = (
+        "<b>" + name + "</b><br>"
+        + "Level: " + level + "<br>"
+        + "Country: " + country + "<br>"
+        + "Start: " + dfm["_start_dt"].map(_fmt) + "<br>"
+        + "End: "   + dfm["_end_dt"].map(_fmt) + "<br>"
+        + "Severity: " + severity
+    )
+
+    # Create figure with halo + ring + main markers, grouped by Level
+    fig_map = go.Figure()
+    main_size, ring_size, halo_size = 11, 14, 26
+
+    for lvl in dfm.get("Level", "Unknown").fillna("Unknown").unique():
+        sub = dfm[dfm["Level"].fillna("Unknown") == lvl]
+        color_hex = ALERT_COLORS.get(lvl, ALERT_COLORS["Unknown"])
+
+        # Halo (faint colored circle)
+        fig_map.add_trace(go.Scattermapbox(
+            lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+            marker=dict(size=halo_size, color=[_halo_rgba(color_hex)] * len(sub), opacity=1.0),
+            hoverinfo="skip", showlegend=False,
+        ))
+
+        # Ring (white)
+        fig_map.add_trace(go.Scattermapbox(
+            lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+            marker=dict(size=ring_size, color="white", opacity=0.95, symbol="circle"),
+            hoverinfo="skip", showlegend=False,
+        ))
+
+        # Main marker (solid)
+        fig_map.add_trace(go.Scattermapbox(
+            lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+            marker=dict(size=main_size, color=color_hex, opacity=0.95, symbol="circle"),
+            name=str(lvl),
+            customdata=sub[["hover"]],
+            hovertemplate="%{customdata[0]}<extra></extra>",
+        ))
+
+    center, zoom = _center_zoom_from_points(dfm["Latitude"], dfm["Longitude"])
+
+    fig_map.update_layout(
+        margin=dict(l=0, r=0, t=10, b=0),
+        height=560,
+        hoverlabel=dict(font_size=16),
+        legend_title_text="Level",
+        uirevision=True,
+        mapbox=dict(style="carto-positron", center=center, zoom=zoom),
+    )
+
+    st.caption(
+        "Zoom and pan to explore context locations. Map styling mirrors the Alerts tab: "
+        "Carto-Positron base, with halo/ring/main markers; levels follow the app palette."
+    )
+    st.plotly_chart(
+        fig_map, use_container_width=True,
+        config={"scrollZoom": True, "displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]},
+    )
+
+    # ---- NEXT SECTIONS (placeholders) ----
+    st.markdown("---")
+    subsection_title("Global Notes (Placeholder)")
+    st.markdown(
+        "- Data coverage varies by source/time; interpret counts carefully.\n"
+        "- Consider normalizing by population or exposure where appropriate.\n"
+        "- Integrate climate or seasonal signals in future iterations."
+    )
+
+    st.markdown("---")
+    st.caption("Sources: Your integrated feeds (e.g., EM-DAT, GDACS, EONET).")
