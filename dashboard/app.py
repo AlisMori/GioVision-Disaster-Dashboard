@@ -40,7 +40,7 @@ from src.utils import style_config
 # ---------------------------------------------------------------------
 style_config.apply_streamlit_style()
 
-css_path = os.path.join("dashboard", "assets", "style.css")
+css_path = os.path.join("assets", "style.css")
 if os.path.exists(css_path):
     with open(css_path) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
