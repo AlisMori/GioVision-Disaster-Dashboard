@@ -1,5 +1,5 @@
 # Core libraries
-pandas==2.2.2
+pandas==2.2.3
 requests==2.32.3
 
 # Visualization
@@ -15,7 +15,7 @@ lxml==5.3.0
 xmltodict==0.13.0
 
 # Optional data handling
-numpy==1.26.4
+numpy==2.2.6
 
 # Logging & dev tools
 python-dotenv==1.0.1
