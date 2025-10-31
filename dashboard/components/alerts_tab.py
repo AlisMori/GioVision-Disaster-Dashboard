@@ -81,24 +81,19 @@ def subsection_title(text: str):
 
 
 def _center_zoom_from_points(lat_series: pd.Series, lon_series: pd.Series):
-    """
-    Compute an approximate (center, zoom) for Mapbox from point bounds.
-    Works on older Plotly versions where layout.mapbox.fitbounds is unsupported.
-    """
+    """Compute center and zoom for Mapbox from points."""
     lats = pd.to_numeric(lat_series, errors="coerce").dropna()
     lons = pd.to_numeric(lon_series, errors="coerce").dropna()
 
     if len(lats) == 0 or len(lons) == 0:
-        return dict(lat=0, lon=0), 1.3  # safe global default
+        return dict(lat=0, lon=0), 1.3
 
     lat_min, lat_max = float(lats.min()), float(lats.max())
     lon_min, lon_max = float(lons.min()), float(lons.max())
-
     center = dict(lat=(lat_min + lat_max) / 2.0, lon=(lon_min + lon_max) / 2.0)
 
     lat_span = max(1e-6, lat_max - lat_min)
     lon_span = max(1e-6, lon_max - lon_min)
-
     k = 1.4
     zoom_from_lon = math.log2(360.0 / (lon_span * k))
     zoom_from_lat = math.log2(180.0 / (lat_span * k))
@@ -510,17 +505,72 @@ def render():
             if lvl_tl.empty:
                 st.markdown("No Red/Orange/Green alerts to plot for the last 30 days.")
             else:
-                fig_lvl = px.line(
-                    lvl_tl, x="Date", y="Active", color="Alert Level",
-                    markers=True, color_discrete_map=ALERT_COLORS,
+                map_df["_start_dt"] = pd.to_datetime(map_df.get("Start Date"), errors="coerce", utc=True)
+                map_df["_end_dt"]   = pd.to_datetime(map_df.get("End Date"), errors="coerce", utc=True)
+                event_name = map_df.get("Event Name", "Event").fillna("Event")
+                country    = map_df.get("Country", "—").fillna("—")
+                severity   = map_df.get("Severity", "—").fillna("—")
+
+                map_df["hover"] = (
+                    "<b>" + event_name + "</b><br>"
+                    + "Type: " + map_df["Type Name"].fillna("Unknown") + "<br>"
+                    + "Alert: " + map_df.get("Alert Level", "Unknown").fillna("Unknown") + "<br>"
+                    + "Country: " + country + "<br>"
+                    + "Start: " + map_df["_start_dt"].map(_fmt) + "<br>"
+                    + "End: "   + map_df["_end_dt"].map(_fmt) + "<br>"
+                    + "Severity: " + severity
                 )
-                fig_lvl.update_layout(
-                    title="Active Alerts by Alert Level (Daily)",
-                    xaxis_title="Date", yaxis_title="Number of Active Alerts",
-                    legend_title="Alert Level", hovermode="x unified"
+
+                from plotly import graph_objects as go
+                def halo_rgba(alert):
+                    base = ALERT_COLORS.get(alert, ALERT_COLORS["Unknown"]).lstrip("#")
+                    r = int(base[0:2], 16); g = int(base[2:4], 16); b = int(base[4:6], 16)
+                    return f"rgba({r},{g},{b},0.25)"
+
+                fig_map = go.Figure()
+                main_size, ring_size, halo_size = 11, 14, 26
+
+                for alert in map_df.get("Alert Level", "Unknown").fillna("Unknown").unique():
+                    sub = map_df[map_df["Alert Level"].fillna("Unknown") == alert]
+
+                    fig_map.add_trace(go.Scattermapbox(
+                        lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                        marker=dict(size=halo_size, color=[halo_rgba(alert)] * len(sub), opacity=1.0),
+                        hoverinfo="skip", showlegend=False,
+                    ))
+                    fig_map.add_trace(go.Scattermapbox(
+                        lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                        marker=dict(size=ring_size, color="white", opacity=0.95, symbol="circle"),
+                        hoverinfo="skip", showlegend=False,
+                    ))
+                    fig_map.add_trace(go.Scattermapbox(
+                        lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                        marker=dict(size=main_size, color=ALERT_COLORS.get(alert, ALERT_COLORS["Unknown"]),
+                                    opacity=0.95, symbol="circle"),
+                        name=str(alert),
+                        customdata=sub[["hover"]],
+                        hovertemplate="%{customdata[0]}<extra></extra>",
+                    ))
+
+                center, zoom = _center_zoom_from_points(map_df["Latitude"], map_df["Longitude"])
+
+                fig_map.update_layout(
+                    margin=dict(l=0, r=0, t=10, b=0),
+                    height=560,
+                    hoverlabel=dict(font_size=16),
+                    legend_title_text="Disaster Level",
+                    uirevision=True,
+                    mapbox=dict(style="carto-positron", center=center, zoom=zoom),
                 )
-                fig_lvl.update_traces(hovertemplate="<b>%{x}</b><br>%{fullData.name}: %{y}<extra></extra>")
-                st.plotly_chart(fig_lvl, use_container_width=True)
+
+                st.caption(
+                    "Zoom with your mouse/trackpad. Labels appear as you zoom. "
+                    "The faint halo indicates the epicenter area; colors follow the disaster level."
+                )
+                st.plotly_chart(
+                    fig_map, use_container_width=True,
+                    config={"scrollZoom": True, "displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]},
+                )
 
         with tab2:
             st.markdown("Active alerts per day, grouped by disaster type.")
@@ -532,14 +582,116 @@ def render():
                     type_tl, x="Date", y="Active", color="Disaster Type",
                     markers=True, color_discrete_sequence=TYPE_SOFT_COLORS,  # ⬅️ soft multi-hue
                 )
-                fig_type.update_layout(
-                    title="Active Alerts by Disaster Type (Daily)",
-                    xaxis_title="Date", yaxis_title="Number of Active Alerts",
-                    legend_title="Disaster Type", hovermode="x unified"
+                fig_bar.update_traces(
+                    texttemplate="%{text}",
+                    textposition="outside",
+                    cliponaxis=False,
+                    hovertemplate="<b>%{y}</b><br>Type: %{marker.color}<br>Score: %{x}<extra></extra>"
                 )
-                fig_type.update_traces(hovertemplate="<b>%{x}</b><br>%{fullData.name}: %{y}<extra></extra>")
-                st.plotly_chart(fig_type, use_container_width=True)
+                st.plotly_chart(fig_bar, use_container_width=True)
 
-    # ---- FOOTER ----
-    st.markdown("---")
-    st.caption("Source: Global Disaster Alert and Coordination System")
+            with tabs[1]:
+                fig_pie = px.pie(
+                    viz_df, names="Disaster Type",
+                    color_discrete_sequence=TYPE_PALETTE
+                )
+                fig_pie.update_traces(textposition="inside", textinfo="percent+label")
+                st.plotly_chart(fig_pie, use_container_width=True)
+
+            # =========================
+            # TIME SERIES (Last 30 Days)
+            # =========================
+            st.markdown("---")
+            _anchor("sec-alerts-timeseries")
+            section_title("Active Alerts Over Time (Last 30 Days)")
+
+            ts_df = table_df.copy()
+            ts_df["Start Date"] = pd.to_datetime(ts_df.get("Start Date"), errors="coerce", utc=True)
+            ts_df["End Date"] = pd.to_datetime(ts_df.get("End Date"), errors="coerce", utc=True)
+
+            end_window = pd.Timestamp.utcnow().normalize()
+            start_window = end_window - pd.Timedelta(days=29)
+
+            ts_df["End Date"] = ts_df["End Date"].fillna(end_window + pd.Timedelta(days=1) - pd.Timedelta(seconds=1))
+            mask = (ts_df["Start Date"] <= end_window) & (ts_df["End Date"] >= start_window)
+            ts_df = ts_df[mask].copy()
+
+            if ts_df.empty:
+                st.markdown("No alerts intersect the last 30 days for the current filters.")
+            else:
+                def build_active_timeline(frame: pd.DataFrame, group_col: str) -> pd.DataFrame:
+                    deltas = []
+                    frame["S"] = frame["Start Date"].clip(lower=start_window, upper=end_window).dt.normalize()
+                    frame["E"] = frame["End Date"].clip(lower=start_window, upper=end_window).dt.normalize()
+
+                    for gval, sub in frame.groupby(group_col, dropna=False):
+                        if sub.empty:
+                            continue
+                        deltas.append(pd.DataFrame({"Date": sub["S"], "Group": gval, "Delta": 1}))
+                        deltas.append(
+                            pd.DataFrame({"Date": sub["E"] + pd.Timedelta(days=1), "Group": gval, "Delta": -1}))
+
+                    if not deltas:
+                        return pd.DataFrame(columns=["Date", "Active", group_col])
+
+                    delta_df = pd.concat(deltas, ignore_index=True)
+                    full_idx = pd.date_range(start_window, end_window + pd.Timedelta(days=1), freq="D")
+
+                    curves = []
+                    for gval, sub in delta_df.groupby("Group", dropna=False):
+                        series = sub.groupby("Date")["Delta"].sum().reindex(full_idx, fill_value=0).cumsum()
+                        series = series.iloc[:-1]
+                        curves.append(pd.DataFrame({
+                            "Date": series.index.date,
+                            "Active": series.values,
+                            group_col: gval if pd.notna(gval) else "Unknown"
+                        }))
+
+                    out = pd.concat(curves, ignore_index=True) if curves else pd.DataFrame(
+                        columns=["Date", "Active", group_col])
+                    return out[(out["Date"] >= start_window.date()) & (out["Date"] <= end_window.date())]
+
+                tab1, tab2 = st.tabs(["By Alert Level", "By Disaster Type"])
+
+                with tab1:
+                    lvl_tl = build_active_timeline(ts_df, "Alert Level")
+                    if lvl_tl.empty:
+                        st.markdown("No Red/Orange/Green alerts to plot for the last 30 days.")
+                    else:
+                        fig_lvl = px.line(
+                            lvl_tl, x="Date", y="Active", color="Alert Level",
+                            markers=True, color_discrete_map=ALERT_COLORS,
+                        )
+                        fig_lvl.update_layout(
+                            title="Active Alerts by Alert Level (Daily)",
+                            xaxis_title="Date", yaxis_title="Number of Active Alerts",
+                            legend_title="Alert Level", hovermode="x unified"
+                        )
+                        fig_lvl.update_traces(hovertemplate="<b>%{x}</b><br>%{fullData.name}: %{y}<extra></extra>")
+                        st.plotly_chart(fig_lvl, use_container_width=True)
+
+                with tab2:
+                    type_tl = build_active_timeline(ts_df, "Disaster Type")
+                    if type_tl.empty:
+                        st.markdown("No disasters to plot for the last 30 days.")
+                    else:
+                        fig_type = px.line(
+                            type_tl, x="Date", y="Active", color="Disaster Type",
+                            markers=True, color_discrete_sequence=TYPE_PALETTE,
+                        )
+                        fig_type.update_layout(
+                            title="Active Alerts by Disaster Type (Daily)",
+                            xaxis_title="Date", yaxis_title="Number of Active Alerts",
+                            legend_title="Disaster Type", hovermode="x unified"
+                        )
+                        fig_type.update_traces(hovertemplate="<b>%{x}</b><br>%{fullData.name}: %{y}<extra></extra>")
+                        st.plotly_chart(fig_type, use_container_width=True)
+
+            # ---- FOOTER ----
+            st.markdown("---")
+            st.caption("Source: Global Disaster Alert and Coordination System")
+
+
+
+
+
