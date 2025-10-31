@@ -142,7 +142,7 @@ def _country_to_macro_region(df: pd.DataFrame) -> Optional[Dict[str, str]]:
 # ===========================
 def render():
     _anchor("sec-h1-overview")
-    section_title("Hypothesis 1")
+    section_title("Impact Gap")
 
     st.markdown(
         "> A higher number of people from **Least Developed Countries (LDCs)** are affected by natural disasters "

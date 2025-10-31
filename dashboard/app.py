@@ -22,7 +22,7 @@ if str(ROOT) not in sys.path:
 
 
 import streamlit as st
-from dashboard.components import home_tab, environmental_overview_tab, impact_tab, disaster_analysis_tab, alerts_tab, hypothesis_tab
+from dashboard.components import home_tab, environmental_overview_tab, impact_tab, disaster_analysis_tab, alerts_tab, trends_tab
 from src.utils import style_config
 
 # ----------------------------
@@ -68,7 +68,7 @@ PAGES = {
     "Environmental Overview": [],
     "Impact of Natural Disasters": [],
     "Disaster Analysis": [],
-    "Hypothesis": [],
+    "Trends": [],
 }
 ORDER = list(PAGES.keys())
 DEFAULT_PAGE = "Alerts"
@@ -307,8 +307,8 @@ with capture_sections(page):
         impact_tab.render()
     elif page == "Disaster Analysis":
         disaster_analysis_tab.render()
-    elif page == "Hypothesis":
-        hypothesis_tab.render()
+    elif page == "Trends":
+        trends_tab.render()
 
 # 3) After capture, print dropdown under top tabs + in sidebar
 render_sections_dropdown(page)
