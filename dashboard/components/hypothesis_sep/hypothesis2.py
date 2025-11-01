@@ -46,7 +46,7 @@ def render():
 
     st.markdown(
         "> From 2010 to 2025, the frequency of **severe weather events** (Floods, Storms, Droughts, Wildfires, "
-        "and Extreme Temperatures) has increased over time, particularly in the **past decade (2015–2025)**."
+        "and Extreme Temperatures) has increased over time, particularly in the **past few years (2018–2025)**."
     )
 
     st.markdown("---")
@@ -64,7 +64,7 @@ def render():
     st.subheader("Total Severe Weather Events per Year")
     st.write(
         "This chart shows how the total number of severe weather events fluctuated between 2010 and 2025. "
-        "While individual years vary significantly, the overall tendency appears slightly upward after 2015, "
+        "While individual years vary significantly, the overall tendency appears slightly upward after 2018, "
         "indicating that weather-related events became somewhat more frequent in the recent decade."
     )
 
@@ -151,15 +151,15 @@ def render():
     st.plotly_chart(fig_type, use_container_width=True)
 
     # Percentage change by disaster type
-    st.subheader("Percentage Change in Average Annual Frequency (2010–2014 vs 2015–2025)")
+    st.subheader("Percentage Change in Average Annual Frequency (2010–2017 vs 2018–2025)")
     st.write(
         "This view quantifies how much each disaster type changed between decades. "
         "Wildfires and storms show the strongest increases, whereas droughts and extreme temperatures show slight declines, "
         "suggesting that hydrometeorological hazards are becoming more prominent."
     )
 
-    early_avg = type_trend[type_trend["Start Year"] < 2015].groupby("Disaster Type")["Event Count"].mean()
-    late_avg = type_trend[type_trend["Start Year"] >= 2015].groupby("Disaster Type")["Event Count"].mean()
+    early_avg = type_trend[type_trend["Start Year"] < 2018].groupby("Disaster Type")["Event Count"].mean()
+    late_avg = type_trend[type_trend["Start Year"] >= 2018].groupby("Disaster Type")["Event Count"].mean()
 
     change = ((late_avg - early_avg) / early_avg * 100).reset_index()
     change.columns = ["Disaster Type", "Change (%)"]
@@ -180,11 +180,11 @@ def render():
     # Stacked bar counts for the recent decade
     st.subheader("Severe Weather Events by Type — Recent Decade (Counts)")
     st.write(
-        "This stacked bar chart summarizes annual event counts from 2015 to 2025. "
+        "This stacked bar chart summarizes annual event counts from 2018 to 2025. "
         "It shows that floods consistently contribute the largest share each year, "
         "followed by storms, reinforcing that these two types dominate the global impact profile."
     )
-    recent = df[df["Start Year"] >= 2015]
+    recent = df[df["Start Year"] >= 2018]
     recent_counts = (
         recent.groupby(["Start Year", "Disaster Type"])
         .size()
@@ -196,19 +196,72 @@ def render():
         x="Start Year",
         y="Count",
         color="Disaster Type",
-        title="Severe Weather Events by Type (2015–2025, stacked counts)"
+        title="Severe Weather Events by Type (2018–2025, stacked counts)"
     )
     fig_bar_stack.update_layout(height=520, barmode="stack", yaxis_title="Events per Year")
     st.plotly_chart(fig_bar_stack, use_container_width=True)
 
     # Interpretation
+    # Final Summary Section – Insight Summary
     st.markdown("---")
-    st.info(
-        f"Between 2010 and 2025, the total number of severe weather events shows a modest upward trend "
-        f"of approximately {percent_increase:.1f}%. While the overall growth is limited, disaggregated analysis reveals "
-        f"that specific categories, particularly floods and storms, demonstrate a stronger and more consistent increase. "
-        f"These results partially support the hypothesis, suggesting that while total event frequency has only slightly "
-        f"increased, severe weather types such as floods are becoming more common drivers of disaster frequency."
+    st.subheader("Insight Summary")
+
+    # Compute key stats
+    min_year, max_year = df["Start Year"].min(), df["Start Year"].max()
+    early_period = df[df["Start Year"] < 2018]
+    recent_period = df[df["Start Year"] >= 2018]
+
+    total_early = len(early_period)
+    total_recent = len(recent_period)
+    change_ratio = (total_recent / total_early) if total_early > 0 else 0
+    avg_yearly_growth = ((total_recent / total_early) ** (1 / (max_year - min_year))) - 1 if total_early > 0 else 0
+
+    # Calculate most frequent disaster type
+    most_common = df["Disaster Type"].value_counts().idxmax()
+    most_common_share = df["Disaster Type"].value_counts(normalize=True).max() * 100
+
+    # KPI-style cards
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            label="Increase in Severe Weather Events",
+            value=f"{change_ratio:.1f}×",
+            delta="Recent decade vs earlier years",
+            help="Compares total events from 2018–2025 vs 2010–2017.",
+        )
+
+    with col2:
+        st.metric(
+            label="Average Annual Growth Rate",
+            value=f"{avg_yearly_growth * 100:.1f}%",
+            delta="Compound yearly increase",
+            help="Approximate rate of increase in total severe weather events per year.",
+        )
+
+    with col3:
+        st.metric(
+            label="Dominant Severe Weather Type",
+            value=most_common,
+            delta=f"{most_common_share:.1f}% of all events",
+            help="Most frequently occurring severe weather type between 2010–2025.",
+        )
+
+    # Text summary block
+    st.markdown(
+        f"""
+        <div style='margin-top:20px; font-size:18px; line-height:1.6; text-align:justify;'>
+            <strong>Interpretation:</strong> The total number of severe weather events increased by 
+            <strong>{change_ratio:.1f}×</strong> from the early part of the dataset (2010–2017) 
+            to the more recent years (2018–2025), with an estimated average annual growth rate of 
+            <strong>{avg_yearly_growth * 100:.1f}%</strong>. The most frequent event type was 
+            <strong>{most_common}</strong>, accounting for approximately 
+            <strong>{most_common_share:.1f}%</strong> of all recorded events.  
+            These results <span style='color:#2E86C1; font-weight:bold;'>support the hypothesis</span> — 
+            the data shows a clear upward trend in the frequency of severe weather events in the past decade.
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
     st.markdown("---")
