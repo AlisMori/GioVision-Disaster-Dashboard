@@ -427,11 +427,17 @@ def render():
 
     with left:
         _anchor("sec-da-overview")
-        section_title("Disaster Analysis")
-        st.markdown(
-            "Exploratory view of EM-DAT disaster records across time and space. "
-            "Use the filter panel on the right to control all visuals."
-        )
+        section_title("Overview")
+        st.markdown("""
+            This page shows a global analysis of EM-DAT disasters and their impacts. 
+
+            - Use the filter panel on the right to control all visuals.
+            - Explore patterns across **time** and **space**
+            - See **which areas are most affected**
+            - Identify **which disaster types dominate**
+            - Observe **when disasters concentrate**
+        """)
+
         total_events = int(scoped["DisNo."].count())
         peak_year = ""
         if scoped["Year"].notna().any():
