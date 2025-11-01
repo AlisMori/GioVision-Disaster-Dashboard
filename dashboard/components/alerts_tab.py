@@ -247,7 +247,7 @@ def render():
             # One-line context
             top_type = type_counts.index[0] if not type_counts.empty else "—"
             story_context(
-                f"Showing {total_alerts:,} alerts; {active_n:,} active as of today — top type: {top_type}."
+                f"Showing {total_alerts:,} alerts; {active_n:,} active as of today - top type: {top_type}."
             )
 
             # KPI rows
