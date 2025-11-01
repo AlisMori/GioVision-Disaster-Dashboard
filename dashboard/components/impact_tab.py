@@ -80,17 +80,20 @@ def render():
     st.markdown(
         """
         <style>
-          [data-testid="column"]:nth-of-type(2) > div {
+          [data-testid="column"]:has(.impact-filter-marker) > div {
               position: sticky;
               top: 90px;
+              width: 130%;
               align-self: flex-start !important;
-          }
-          .sticky-filter {
               background-color: rgba(255,255,255,0.8);
               padding: 1rem;
               border-radius: 10px;
               border: 1px solid #ddd;
               box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+          }
+
+          .impact-filter-marker {
+              display: none;
           }
         </style>
         """,
@@ -105,7 +108,7 @@ def render():
     # ---------------- Filters ----------------
     with col_filter:
         subsection_title("Filters")
-        st.markdown('<div class="sticky-filter">', unsafe_allow_html=True)
+        st.markdown('<div class="impact-filter-marker"></div>', unsafe_allow_html=True)
 
         years = sorted(df["Start Year"].unique())
         selected_years = st.slider("Select Year Range", int(min(years)), int(max(years)),
@@ -113,7 +116,6 @@ def render():
         selected_region = st.selectbox("Select Region", ["All"] + sorted(df["Region"].dropna().unique().tolist()))
         selected_metric = st.selectbox("Select Impact Metric", ["Total Affected", "Total Deaths", "No. Injured"])
 
-        st.markdown("</div>", unsafe_allow_html=True)
 
     # Filtered data
     filtered = df[(df["Start Year"] >= selected_years[0]) & (df["Start Year"] <= selected_years[1])]
