@@ -295,10 +295,9 @@ def page_home():
 # 1) Page title
 gv_page_title(page)
 
-# 2) Render the selected page while capturing section blocks it emits
 with capture_sections(page):
     if page == "Home":
-        page_home()
+        home_tab.render()  # <- updated to use the new styled home_tab
     elif page == "Alerts":
         alerts_tab.render()
     elif page == "Environmental Overview":
@@ -309,6 +308,7 @@ with capture_sections(page):
         disaster_analysis_tab.render()
     elif page == "Trends":
         trends_tab.render()
+
 
 # 3) After capture, print dropdown under top tabs + in sidebar
 render_sections_dropdown(page)
