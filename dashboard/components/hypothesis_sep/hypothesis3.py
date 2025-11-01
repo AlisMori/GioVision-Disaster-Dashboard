@@ -43,12 +43,6 @@ def render():
     _anchor("sec-h3-overview")
     section_title("Earthquakes VS Floods")
 
-    st.markdown(
-        "> Although **floods occur more often than earthquakes**, earthquakes have a **higher average human impact** per "
-        "event — measured in deaths, injuries, and total affected population."
-    )
-
-    st.markdown("---")
 
     # Load and prepare data
     data = _read_csv_first_match(EMDAT_PATHS)

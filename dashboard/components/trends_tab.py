@@ -3,17 +3,21 @@ import os
 import importlib.util
 import streamlit as st
 
+
 # ===========================
 # THEME HELPERS
 # ===========================
 def _anchor(id_: str):
     st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
 
+
 def section_title(text: str):
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
+
 def subsection_title(text: str):
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
+
 
 def _load_module_from_path(module_name: str, filepath: str):
     spec = importlib.util.spec_from_file_location(module_name, filepath)
@@ -22,6 +26,7 @@ def _load_module_from_path(module_name: str, filepath: str):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)  # type: ignore
     return mod
+
 
 def render():
     # --- Tabs styling (kept from your version) ---
@@ -59,8 +64,10 @@ def render():
     )
     st.markdown(
         "- Impact Gap: People in **Least Developed Countries (LDCs)** are more affected than in developed nations.\n"
-        "- Climate Shift: Since the 2000s, **severe weather-related events** (floods, cyclones, heatwaves) have increased in frequency.\n"
-        "- Earthquakes VS Floods: **Earthquakes** have **higher human impact per event** than floods."
+        "- Climate Shift: From 2010 to 2025, the frequency of **severe weather events** (Floods, Storms, Droughts, Wildfires, "
+        "and Extreme Temperatures) has increased over time, particularly in the **past few years (2018–2025)**.\n"
+        "- Earthquakes VS Floods: Although **floods occur more often than earthquakes**, earthquakes have a **higher average human impact** per "
+        "event — measured in deaths, injuries, and total affected population."
     )
 
     st.markdown("---")
