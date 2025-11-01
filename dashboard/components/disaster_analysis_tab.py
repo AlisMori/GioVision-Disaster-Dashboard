@@ -3,10 +3,10 @@
 """
 Disaster Analysis page using EM-DAT.
 
-Teacher changes (2025-10-31) — Finalized:
+Teacher changes (2025-10-31) - Finalized:
 - RIGHT floating (fixed) global filter panel that stays visible while scrolling
 - Year/Region/Country react on FIRST try (no rerun warnings)
-- Professional sections & titles; context lines 6–15 words, slightly larger
+- Professional sections & titles; context lines 6-15 words, slightly larger
 - Distinguishable palettes for category visuals (pie / stacked / grouped / area)
 - Lat/Lon gap-fill once (country medians), reused by maps
 """
@@ -93,6 +93,12 @@ def subsection_title(text: str):
 
 def story_context(text: str):
     st.markdown(f'<div class="gv-context">{text}</div>', unsafe_allow_html=True)
+
+def _plot(fig, key: str, config: Dict):
+    """Apply uirevision to keep zoom/selection on rerun, then plot."""
+    fig.update_layout(uirevision=key, hovermode="closest")
+    st.plotly_chart(fig, use_container_width=True, config=config)
+    st.caption("Tip: if a plot disappears, double-click inside the chart to refresh.")
 
 # =========================
 # DATA LOADING / PREP
@@ -218,104 +224,68 @@ def _clip_to_region_bbox(d: pd.DataFrame, region: str) -> pd.DataFrame:
     dd["Longitude"] = pd.to_numeric(dd["Longitude"], errors="coerce")
     return dd[(dd["Latitude"].between(lat_min, lat_max)) & (dd["Longitude"].between(lon_min, lon_max))]
 
-# =========================
-# STATE SEEDING (no “second try” + no rerun)
-# =========================
-def _coerce_into(options: List[str], value: Optional[str], fallback_idx: int = 0) -> str:
-    if not options:
-        return ""
-    if value in options:
-        return value
-    return options[min(fallback_idx, len(options)-1)]
+def _clamp_years(val, lo, hi):
+    """Clamp a (start,end) tuple into [lo,hi] and ensure start<=end."""
+    if not isinstance(val, (tuple, list)) or len(val) != 2:
+        return (lo, hi)
+    a, b = int(val[0]), int(val[1])
+    a = max(lo, min(a, hi))
+    b = max(lo, min(b, hi))
+    if a > b: a, b = b, a
+    return (a, b)
 
-def _seed_filter_keys(df: pd.DataFrame, min_year: int, max_year: int):
-    """
-    Ensure widget keys exist and are valid BEFORE we read them.
-    Returns: (current_years, current_region, region_options, country_options)
-    """
-    gy_default = (max(DEFAULT_START, min_year), min(DEFAULT_END, max_year))
-    st.session_state.setdefault("glob_years", gy_default)
-    st.session_state.setdefault("glob_region", "All Regions")
-    st.session_state.setdefault("glob_country", "Global")
-
-    st.session_state.setdefault("__years_slider__", st.session_state["glob_years"])
-
-    current_years  = st.session_state["__years_slider__"]
-    region_options = _available_regions(df, current_years)
-
-    st.session_state.setdefault("__region_select__", _coerce_into(region_options, st.session_state["glob_region"], 0))
-    current_region = _coerce_into(region_options, st.session_state["__region_select__"], 0)
-    st.session_state["__region_select__"] = current_region
-
-    country_options = _available_countries(df, current_years, current_region)
-    st.session_state.setdefault("__country_select__", _coerce_into(country_options, st.session_state["glob_country"], 0))
-    st.session_state["__country_select__"] = _coerce_into(country_options, st.session_state["__country_select__"], 0)
-
-    # mirror to globals so visuals always read current values
-    st.session_state["glob_years"]   = st.session_state["__years_slider__"]
-    st.session_state["glob_region"]  = st.session_state["__region_select__"]
-    st.session_state["glob_country"] = st.session_state["__country_select__"]
-
-    return current_years, current_region, region_options, country_options
+# --- Helpers to sync filters on first try ---
+def _filters_changed():
+    # mirror widget values to globals and hard-rerun once
+    st.session_state["glob_years"]   = st.session_state.get("years_slider")
+    st.session_state["glob_region"]  = st.session_state.get("region_select", "All Regions")
+    st.session_state["glob_country"] = st.session_state.get("country_select", "Global")
+    st.rerun()
 
 
 # =========================
 # PAGE RENDER
 # =========================
 def render():
-    # 1) Scoped CSS: RIGHT column sticky with internal scroll, narrower width
-        # 1) Scoped CSS: RIGHT column sticky with internal scroll, 15% narrower
+    # Sticky panel styling similar to your example; compact card; normal context text
     st.markdown(
         """
         <style>
-          /* Let sticky work inside Streamlit's layout */
-          .main .block-container { overflow: visible !important; }
+        /* allow sticky inside containers */
+        .main .block-container { overflow: visible !important; }
+        [data-testid="stColumn"] > div,
+        [data-testid="column"] > div { overflow: visible !important; }
 
-          /* Scope only to this page */
-          #da-sticky-scope #da-sticky-panel {
-              /* the panel sits INSIDE the right column and becomes sticky at its own start */
-              position: sticky;
-              top: 96px;                     /* start sticking just below your header/banner */
-              align-self: flex-start;        /* keep the panel aligned to the top of its column */
-              z-index: 2;                    /* ensure it stays above nearby charts/toolbars */
-            }
+        /* make the **second** column (filters) sticky — same as Impact tab */
+        [data-testid="column"]:nth-of-type(2) > div {
+            position: sticky;
+            top: 90px;
+            align-self: flex-start !important;
+            z-index: 2;
+        }
+        .gv-filter-card{
+            background: rgba(255,255,255,0.92);
+            border: 1px solid #E6E6E6;
+            border-radius: 12px;
+            padding: 14px 14px 10px 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            max-width: 320px;                 /* compact like your example */
+            max-height: calc(100vh - 140px);  /* scroll inside the card */
+            overflow: auto;
+            font-style: normal; font-weight: 400;
+        }
+        .gv-context { font-style: normal; color:#2E2E2E; line-height:1.35; }
 
-          #da-sticky-scope #da-sticky-panel .panel-inner{
-              background:#fff;
-              border:1px solid rgba(0,0,0,0.06);
-              border-radius:12px;
-              /* ↓ 15% narrower than previous clamp(210px, 17vw, 240px) */
-              width: clamp(180px, 14.5vw, 204px);
-              max-height: calc(100vh - 140px);      /* viewport minus top offset */
-              overflow: auto;                        /* scroll inside the panel */
-              padding: 10px 12px;
-              box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-          }
-
-          /* Optional: subtle heading style inside panel */
-          #da-sticky-scope #da-sticky-panel .panel-title{
-              font-weight: 700;
-              margin: 0 0 6px 2px;
-          }
-
-          /* Safety on small screens */
-          @media (max-width: 1100px){
-            #da-sticky-scope #da-sticky-panel { position: static; }
-            #da-sticky-scope #da-sticky-panel .panel-inner{
-              width: 100%;
-              max-height: none;
-            }
-          }
-
-          /* Context line style */
-          .gv-context { font-size: 0.95rem; color:#3f3f46; margin: 2px 0 10px 2px; }
+        @media (max-width:1100px){
+            [data-testid="column"]:nth-of-type(2) > div { position: static; }
+            .gv-filter-card { max-width: 100%; max-height: none; }
+        }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-
-    # 2) Load data
+    # 1) Load data
     emdat_used_path = _first_existing_path(EMDAT_PATHS)
     if not emdat_used_path:
         st.error(
@@ -330,58 +300,94 @@ def render():
         st.error(f"EM-DAT file is missing columns: {', '.join(missing)}")
         st.stop()
 
-    # 3) Dataset bounds
+    # 2) Dataset bounds
     if "Start Year" in df and df["Start Year"].notna().any():
         min_year = int(pd.to_numeric(df["Start Year"], errors="coerce").dropna().min())
         max_year = int(pd.to_numeric(df["Start Year"], errors="coerce").dropna().max())
     else:
         min_year, max_year = 1970, 2025
 
-    # 4) Seed state
-    st.session_state.setdefault("glob_years", (max(DEFAULT_START, min_year), min(DEFAULT_END, max_year)))
-    st.session_state.setdefault("glob_region", "All Regions")
-    st.session_state.setdefault("glob_country", "Global")
+    # 3) Seed *global* state only (no widget keys yet → avoids warning)
+    if "glob_years" not in st.session_state:
+        st.session_state["glob_years"] = (max(DEFAULT_START, min_year), min(DEFAULT_END, max_year))
+    if "glob_region" not in st.session_state:
+        st.session_state["glob_region"] = "All Regions"
+    if "glob_country" not in st.session_state:
+        st.session_state["glob_country"] = "Global"
 
-    # 5) Prime widget keys (first-try ready)
-    current_years, current_region, region_options, country_options = _seed_filter_keys(df, min_year, max_year)
+    # Current globals used for initial widget defaults
+    gy = _clamp_years(st.session_state["glob_years"], min_year, max_year)
+    reg_opts = _available_regions(df, gy)
+    reg_default = _coerce_choice(st.session_state["glob_region"], reg_opts, 0)
+    cty_opts = _available_countries(df, gy, reg_default)
+    cty_default = _coerce_choice(st.session_state["glob_country"], cty_opts, 0)
 
-    # 6) Sticky scope + layout
-    st.markdown('<div id="da-sticky-scope">', unsafe_allow_html=True)
-    left, right = st.columns([7, 2], gap="large")
+    # 4) Layout - match example (~80% visuals / 20% filters visually)
+    left, right = st.columns([4, 1], gap="large")
 
-    # ---------- RIGHT: Sticky Panel WITH FILTERS INSIDE ----------
+    # ---------------- RIGHT: Sticky Filters (same parameters) ----------------
+    left, right = st.columns([4, 1], gap="large")  # same proportions as Impact tab
+
     with right:
-        st.markdown('<div id="da-sticky-panel"><div class="panel-inner">', unsafe_allow_html=True)
-        st.markdown('<div class="panel-title">Analysis Filters</div>', unsafe_allow_html=True)
+        subsection_title("Filters")
+        st.markdown('<div class="gv-filter-card">', unsafe_allow_html=True)
 
-        # Recompute options based on current slider before dependent widgets
-        new_years = st.slider(
+        # ----- defaults ONLY from globals; do not touch widget keys beforehand -----
+        gy_default = (
+            max(DEFAULT_START, min_year),
+            min(DEFAULT_END,   max_year),
+        )
+        gy = st.session_state.get("glob_years", gy_default)
+
+        # YEAR slider (first-try apply via on_change)
+        years_value = st.slider(
             "Year range",
             min_value=min_year, max_value=max_year,
-            value=current_years, step=1, key="__years_slider__"
-        )
-        current_years = new_years
-
-        region_options = _available_regions(df, current_years)
-        region_val = _coerce_choice(st.session_state.get("__region_select__", "All Regions"), region_options, 0)
-        new_region = st.selectbox(
-            "Region", options=region_options, index=region_options.index(region_val), key="__region_select__"
+            value=(int(gy[0]), int(gy[1])),
+            step=1,
+            key="years_slider",
+            on_change=_filters_changed,  # <— first try applies
         )
 
-        country_options = _available_countries(df, current_years, new_region)
-        country_val = _coerce_choice(st.session_state.get("__country_select__", "Global"), country_options, 0)
-        new_country = st.selectbox(
-            "Country", options=country_options, index=country_options.index(country_val), key="__country_select__"
+        # REGION depends on selected years
+        region_options = _available_regions(df, years_value)
+        region_default = (
+            st.session_state.get("glob_region", "All Regions")
+            if st.session_state.get("glob_region", "All Regions") in region_options
+            else "All Regions"
+        )
+        region_value = st.selectbox(
+            "Region",
+            options=region_options,
+            index=region_options.index(region_default),
+            key="region_select",
+            on_change=_filters_changed,  # keep dependent widgets crisp
         )
 
-        # Mirror to globals (so visuals pick them up in the same run)
-        st.session_state["glob_years"]   = current_years
-        st.session_state["glob_region"]  = new_region
-        st.session_state["glob_country"] = new_country
+        # COUNTRY depends on years + region
+        country_options = _available_countries(df, years_value, region_value)
+        country_default = (
+            st.session_state.get("glob_country", "Global")
+            if st.session_state.get("glob_country", "Global") in country_options
+            else "Global"
+        )
+        country_value = st.selectbox(
+            "Country",
+            options=country_options,
+            index=country_options.index(country_default),
+            key="country_select",
+            on_change=_filters_changed,
+        )
 
-        st.markdown("</div></div>", unsafe_allow_html=True)
+        # mirror to globals (for the very first render)
+        st.session_state.setdefault("glob_years", years_value)
+        st.session_state.setdefault("glob_region", region_value)
+        st.session_state.setdefault("glob_country", country_value)
 
-    # ---------- LEFT: Visuals ----------
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
+    # ---------------- LEFT: Visuals ----------------
     years   = st.session_state["glob_years"]
     region  = st.session_state["glob_region"]
     country = st.session_state["glob_country"]
@@ -419,7 +425,6 @@ def render():
         s = df_in.groupby(TYPE_COL)["DisNo."].count().sort_values(ascending=False)
         return str(s.index[0]) if len(s) else ""
 
-    # ---------- page ----------
     with left:
         _anchor("sec-da-overview")
         section_title("Disaster Analysis")
@@ -434,7 +439,7 @@ def render():
             if not ycnt.empty: peak_year = int(ycnt.idxmax())
         top_type_all = _top_type(scoped)
         story_context(
-            f"Showing {total_events:,} events; peak in {peak_year} — top type: {top_type_all}."
+            f"Showing {total_events:,} events; peak in {peak_year} - top type: {top_type_all}."
             if total_events else "No events match the current filters."
         )
 
@@ -442,14 +447,14 @@ def render():
             return constrained_type_selector(df, prefix, years, region, country, TYPE_COL)
 
         # ======================
-        # A — Geographic Overview
+        # A - Geographic Overview
         # ======================
         st.markdown("---")
         section_title("Geographic Overview")
 
-        # A1) Choropleth — Country totals (with local Disaster Type filter)
+        # A1) Choropleth - Total Disasters per Country
         _anchor("sec-da-map-country")
-        subsection_title("Choropleth — Total Disasters per Country")
+        subsection_title("Choropleth - Total Disasters per Country")
         type_choro = type_sel("choro")
         d1 = scoped.copy()
         if type_choro and type_choro != "All" and TYPE_COL in d1.columns:
@@ -458,8 +463,8 @@ def render():
         agg1 = d1.groupby("Country", as_index=False)["DisNo."].count().rename(columns={"DisNo.": "Events"})
         tc = _top_country(agg1)
         story_context(
-            f"Highest totals in {tc} over {years[0]}–{years[1]} (type: {type_choro})."
-            if tc else f"Country totals across {years[0]}–{years[1]} (type: {type_choro})."
+            f"Highest totals in {tc} over {years[0]}-{years[1]} (type: {type_choro})."
+            if tc else f"Country totals across {years[0]}-{years[1]} (type: {type_choro})."
         )
         if not agg1.empty:
             fig_chor = px.choropleth(
@@ -470,11 +475,11 @@ def render():
                 coloraxis_colorbar=dict(title="Total Events"),
                 geo=dict(showframe=False, showcoastlines=True, projection_type="natural earth", fitbounds="locations")
             )
-            st.plotly_chart(fig_chor, use_container_width=True, config=PLOTLY_CFG)
+            _plot(fig_chor, key="da-choro", config=PLOTLY_CFG)
 
-        # A2) Spatial Concentration — Density & Points
+        # A2) Spatial Concentration - Density & Points
         _anchor("sec-da-concentration")
-        subsection_title("Spatial Concentration — Density & Event Points")
+        subsection_title("Spatial Concentration - Density & Event Points")
         type5 = type_sel("conc")
         d5 = scoped.copy()
         if type5 and type5 != "All" and TYPE_COL in d5.columns:
@@ -509,7 +514,7 @@ def render():
             safe_year = pd.to_numeric(d5.get("Year"), errors="coerce").astype("Int64").astype(str).replace("<NA>", "")
             hover = np.where(
                 safe_name.eq(""),
-                safe_type + " — " + safe_country + np.where(safe_year.eq(""), "", " (" + safe_year + ")"),
+                safe_type + " - " + safe_country + np.where(safe_year.eq(""), "", " (" + safe_year + ")"),
                 safe_name + np.where(safe_year.eq(""), "", " (" + safe_year + ")")
             )
             fig_scatter.add_trace(go.Scattermapbox(
@@ -517,11 +522,10 @@ def render():
                 marker=dict(size=4, opacity=0.75, color="#6B7280"),
                 text=hover, hovertemplate="%{text}<extra></extra>",
             ))
-            st.plotly_chart(fig_scatter, use_container_width=True, config=PLOTLY_CFG)
-            st.caption("Heat shows concentration (light → dark). Missing coordinates are filled by country medians.")
+            _plot(fig_scatter, key="da-density", config=PLOTLY_CFG)
 
         # ======================
-        # B — Disasters Distribution
+        # B - Disasters Distribution
         # ======================
         st.markdown("---")
         section_title("Disasters Distribution")
@@ -558,7 +562,7 @@ def render():
                 fig_bar.update_traces(textposition="outside", cliponaxis=False,
                                       hovertemplate="<b>%{y}</b><br>Count: %{x:,}<extra></extra>")
                 fig_bar.update_layout(yaxis={"categoryorder": "total ascending"}, bargap=0.25, showlegend=False)
-                st.plotly_chart(fig_bar, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+                _plot(fig_bar, key="da-top10-bar", config=PLOTLY_CFG_NOZOOM)
 
             with tab_pie:
                 fig_pie = px.pie(
@@ -567,17 +571,17 @@ def render():
                 )
                 fig_pie.update_traces(textposition="inside", textinfo="percent+label",
                                       hovertemplate="<b>%{label}</b><br>Count: %{value:,}<extra></extra>")
-                st.plotly_chart(fig_pie, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+                _plot(fig_pie, key="da-top10-pie", config=PLOTLY_CFG_NOZOOM)
 
         # ======================
-        # C — Temporal Patterns
+        # C - Temporal Patterns
         # ======================
         st.markdown("---")
         section_title("Temporal Patterns")
 
         # C1) Stacked Area Timeline (Top-5 + Others)
         _anchor("sec-da-timeline")
-        subsection_title("Disaster Types Over Time — Stacked Area (Top-5 + Others)")
+        subsection_title("Disaster Types Over Time - Stacked Area (Top-5 + Others)")
         d3 = scoped.copy()
         if "Event Date" in d3.columns and d3["Event Date"].notna().any():
             ym = d3["Event Date"].dt.to_period("M").astype(str)
@@ -603,11 +607,11 @@ def render():
             fig_area = px.area(area, x="YearMonth_dt", y="Count", color="Type_6", color_discrete_map=color_map)
             fig_area.update_traces(hovertemplate="<b>%{x|%Y-%m}</b><br>%{fullData.name}: %{y:,}<extra></extra>")
             fig_area.update_layout(xaxis_title="Date", yaxis_title="Events", legend_title="Type", hovermode="x unified")
-            st.plotly_chart(fig_area, use_container_width=True, config=PLOTLY_CFG)
+            _plot(fig_area, key="da-area", config=PLOTLY_CFG)
 
         # C2) Yearly Distribution (Counts)
         _anchor("sec-da-year-dist")
-        subsection_title("Yearly Counts — Line & Bars")
+        subsection_title("Yearly Counts - Line & Bars")
         dY = scoped.copy()
         type_year = type_sel("year")
         if type_year and type_year != "All" and TYPE_COL in dY.columns:
@@ -629,18 +633,18 @@ def render():
                                         color_discrete_sequence=PALETTE_YEAR_LINE)
                 fig_year_line.update_layout(xaxis_title="Year", yaxis_title="Events",
                                             hovermode="x unified", showlegend=False)
-                st.plotly_chart(fig_year_line, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+                _plot(fig_year_line, key="da-year-line", config=PLOTLY_CFG_NOZOOM)
             with tab_bar:
                 fig_year_bar = px.bar(year_counts, x="Year", y="Count", text="Count",
                                       color_discrete_sequence=PALETTE_YEAR_BAR)
                 fig_year_bar.update_traces(textposition="outside", cliponaxis=False)
                 fig_year_bar.update_layout(xaxis_title="Year", yaxis_title="Events",
                                            showlegend=False, bargap=0.2, hovermode="x unified")
-                st.plotly_chart(fig_year_bar, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+                _plot(fig_year_bar, key="da-year-bar", config=PLOTLY_CFG_NOZOOM)
 
         # C3) Yearly Distribution by Type (Top-5 + Others)
         _anchor("sec-da-year-bytype")
-        subsection_title("Yearly Counts by Type — Stacked / Grouped (Top-5 + Others)")
+        subsection_title("Yearly Counts by Type - Stacked / Grouped (Top-5 + Others)")
         dYT = scoped.dropna(subset=["Year"]).copy().astype({"Year":"int"})
         if TYPE_COL not in dYT.columns:
             st.warning(f"Column {TYPE_COL} not found; cannot build type-based distribution.")
@@ -679,7 +683,7 @@ def render():
                         tr.marker.color = OTHERS_COLOR
                 fig_stack.update_layout(barmode="stack", xaxis_title="Year", yaxis_title="Events",
                                         legend_title="Type", hovermode="x unified", bargap=0.15)
-                st.plotly_chart(fig_stack, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+                _plot(fig_stack, key="da-year-type-stack", config=PLOTLY_CFG_NOZOOM)
             with tab_group:
                 fig_group = px.bar(
                     ytc_plot, x="Year", y="Count", color=TYPE_COL, **common_orders,
@@ -690,10 +694,10 @@ def render():
                         tr.marker.color = OTHERS_COLOR
                 fig_group.update_layout(barmode="group", xaxis_title="Year", yaxis_title="Events",
                                         legend_title="Type", hovermode="x unified", bargap=0.20)
-                st.plotly_chart(fig_group, use_container_width=True, config=PLOTLY_CFG_NOZOOM)
+                _plot(fig_group, key="da-year-type-group", config=PLOTLY_CFG_NOZOOM)
 
         # ======================
-        # D — Temporal & Spatial Heat
+        # D - Temporal & Spatial Heat
         # ======================
         st.markdown("---")
         section_title("Temporal & Spatial Heat")
@@ -728,7 +732,7 @@ def render():
             pivot, color_continuous_scale=PALETTE_CALENDAR, aspect="auto", origin="lower", zmin=0
         )
         fig_heat.update_layout(coloraxis_colorbar=dict(title="Events"), xaxis_title="Month", yaxis_title="Year")
-        st.plotly_chart(fig_heat, use_container_width=True, config=PLOTLY_CFG)
+        _plot(fig_heat, key="da-cal-heat", config=PLOTLY_CFG)
 
         _anchor("sec-da-xy")
         subsection_title("Lat/Lon Density Heat (Cartesian Grid)")
@@ -746,11 +750,8 @@ def render():
             )
             fig_xy.update_layout(xaxis_title="Longitude", yaxis_title="Latitude",
                                  coloraxis_colorbar=dict(title="Density"))
-            st.plotly_chart(fig_xy, use_container_width=True, config=PLOTLY_CFG)
+            _plot(fig_xy, key="da-xy-heat", config=PLOTLY_CFG)
 
         # Footer
         st.markdown("---")
-        st.caption("Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")
-
-    # Close sticky scope wrapper
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.caption("Source: EM-DAT - Centre for Research on the Epidemiology of Disasters (CRED).")
