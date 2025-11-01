@@ -38,7 +38,6 @@ from src.utils import style_config
 # ---------------------------------------------------------------------
 # PAGE CONFIG + BASE STYLE
 # ---------------------------------------------------------------------
-st.set_page_config(page_title="GeoVision Disaster Dashboard", page_icon=None, layout="wide")
 style_config.apply_streamlit_style()
 
 css_path = os.path.join("assets", "style.css")
