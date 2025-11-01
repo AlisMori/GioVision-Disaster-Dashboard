@@ -35,7 +35,7 @@ def _read_csv_first_match(paths):
 
 def render():
     _anchor("sec-h3-overview")
-    section_title("Hypothesis 3")
+    section_title("Earthquakes VS Floods")
 
     st.markdown(
         "> **Earthquakes** have a **higher human impact per event** (e.g., deaths or total affected per event) "

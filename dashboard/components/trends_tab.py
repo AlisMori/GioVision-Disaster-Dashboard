@@ -54,13 +54,13 @@ def render():
     _anchor("sec-hyp-overview")
     section_title("Overview")
     st.markdown(
-        "This page outlines the hypotheses guiding our disaster-impact analysis and "
-        "links directly to dedicated sections where each hypothesis is operationalized."
+        "This page outlines the trends noticed during our disaster-impact analysis and "
+        "links directly to dedicated sections where each trend is operationalized."
     )
     st.markdown(
-        "- Hypothesis 1: People in **Least Developed Countries (LDCs)** are more affected than in developed nations.\n"
-        "- Hypothesis 2: Since the 2000s, **severe weather-related events** (floods, cyclones, heatwaves) have increased in frequency.\n"
-        "- Hypothesis 3: **Earthquakes** have **higher human impact per event** than floods."
+        "- Impact Gap: People in **Least Developed Countries (LDCs)** are more affected than in developed nations.\n"
+        "- Climate Shift: Since the 2000s, **severe weather-related events** (floods, cyclones, heatwaves) have increased in frequency.\n"
+        "- Earthquakes VS Floods: **Earthquakes** have **higher human impact per event** than floods."
     )
 
     st.markdown("---")
@@ -68,9 +68,9 @@ def render():
     # --- Tab loader setup ---
     base_dir = os.path.dirname(os.path.abspath(__file__))
     paths = {
-        "Hypothesis 1": os.path.join(base_dir, "hypothesis_sep", "hypothesis1.py"),
-        "Hypothesis 2": os.path.join(base_dir, "hypothesis_sep", "hypothesis2.py"),
-        "Hypothesis 3": os.path.join(base_dir, "hypothesis_sep", "hypothesis3.py"),
+        "Impact Gap": os.path.join(base_dir, "hypothesis_sep", "hypothesis1.py"),
+        "Climate Shift": os.path.join(base_dir, "hypothesis_sep", "hypothesis2.py"),
+        "Earthquakes VS Floods": os.path.join(base_dir, "hypothesis_sep", "hypothesis3.py"),
     }
 
     tabs = st.tabs(list(paths.keys()))
