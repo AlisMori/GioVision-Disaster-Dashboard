@@ -20,7 +20,6 @@ import numpy as np
 import streamlit as st
 import plotly.express as px
 from plotly import graph_objects as go
-from plotly.colors import qualitative as q  # categorical palettes
 
 # =========================
 # CONFIG / PATHS (portable)
@@ -70,14 +69,28 @@ PALETTE_COUNTRY_CHORO = "Blues"
 PALETTE_CONC_MAP      = "Oranges"
 PALETTE_CALENDAR      = "Greens"
 
-# Distinct categorical palettes (readable)
-PALETTE_TOPN_BARS     = q.Safe
-PALETTE_TOPN_PIE      = q.Set3
-PALETTE_STACKED_AREA  = q.Vivid
-PALETTE_YEAR_BYTYPE   = q.Bold
-PALETTE_YEAR_LINE     = ["#2563EB"]
-PALETTE_YEAR_BAR      = ["#3B82F6"]
-OTHERS_COLOR          = "#9E9E9E"
+# Light, modern categorical palette (not dark, not dusty)
+# mostly Tailwind-300-ish colors: readable, bright
+PALETTE_NATURAL = [
+    "#3B82F6",  # clear blue
+    "#EF4444",  # clear red
+    "#F97316",  # clear orange
+    "#22C55E",  # clear green
+    "#06B6D4",  # clear cyan/teal
+    "#6366F1",  # clear indigo
+    "#EAB308",  # amber/yellow
+    "#8B5CF6",  # violet
+    "#14B8A6",  # teal
+    "#F43F5E",  # rose
+]
+
+PALETTE_TOPN_BARS     = PALETTE_NATURAL
+PALETTE_TOPN_PIE      = PALETTE_NATURAL
+PALETTE_STACKED_AREA  = ["#3B82F6", "#22C55E", "#F97316", "#EF4444", "#06B6D4"]
+PALETTE_YEAR_BYTYPE   = PALETTE_NATURAL
+PALETTE_YEAR_LINE     = ["#2563EB"]      # slightly stronger blue for the line
+PALETTE_YEAR_BAR      = ["#3B82F6"]      # clear blue for yearly bars
+OTHERS_COLOR          = "#D1D5DB"        # light gray for "Others"
 
 # =========================
 # RENDERING HELPERS
@@ -236,10 +249,16 @@ def _clamp_years(val, lo, hi):
 
 # --- Helpers to sync filters on first try ---
 def _filters_changed():
-    # mirror widget values to globals and hard-rerun once
     st.session_state["glob_years"]   = st.session_state.get("years_slider")
     st.session_state["glob_region"]  = st.session_state.get("region_select", "All Regions")
     st.session_state["glob_country"] = st.session_state.get("country_select", "Global")
+    st.rerun()
+
+def _region_changed():
+    # when region changes, ignore previously selected country and reset it
+    st.session_state["glob_region"] = st.session_state.get("region_select", "All Regions")
+    st.session_state["glob_country"] = "Global"
+    st.session_state["glob_years"] = st.session_state.get("years_slider", st.session_state.get("glob_years"))
     st.rerun()
 
 
@@ -247,16 +266,14 @@ def _filters_changed():
 # PAGE RENDER
 # =========================
 def render():
-    # Sticky panel styling similar to your example; compact card; normal context text
+    # Styling: make section title -> text gap bigger, keep filters sticky
     st.markdown(
         """
         <style>
-        /* allow sticky inside containers */
         .main .block-container { overflow: visible !important; }
         [data-testid="stColumn"] > div,
         [data-testid="column"] > div { overflow: visible !important; }
 
-        /* make the **second** column (filters) sticky — same as Impact tab */
         [data-testid="column"]:nth-of-type(2) > div {
             position: sticky;
             top: 90px;
@@ -269,12 +286,29 @@ def render():
             border-radius: 12px;
             padding: 14px 14px 10px 14px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            max-width: 320px;                 /* compact like your example */
-            max-height: calc(100vh - 140px);  /* scroll inside the card */
+            max-width: 320px;
+            max-height: calc(100vh - 140px);
             overflow: auto;
             font-style: normal; font-weight: 400;
         }
-        .gv-context { font-style: normal; color:#2E2E2E; line-height:1.35; }
+        /* section to text spacing */
+        .gv-section-title {
+            margin-top: 1.6rem;
+            margin-bottom: 1.4rem;  /* bigger gap before context */
+        }
+        .gv-subsection-title {
+            margin-top: 1.3rem;
+            margin-bottom: 0.8rem;
+        }
+        .gv-context {
+            font-style: normal;
+            color:#2E2E2E;
+            line-height:1.45;
+            margin-bottom: 1.0rem;
+        }
+        .stPlotlyChart {
+            margin-top: 0.6rem !important;
+        }
 
         @media (max-width:1100px){
             [data-testid="column"]:nth-of-type(2) > div { position: static; }
@@ -307,7 +341,7 @@ def render():
     else:
         min_year, max_year = 1970, 2025
 
-    # 3) Seed *global* state only (no widget keys yet → avoids warning)
+    # 3) Seed *global* state only
     if "glob_years" not in st.session_state:
         st.session_state["glob_years"] = (max(DEFAULT_START, min_year), min(DEFAULT_END, max_year))
     if "glob_region" not in st.session_state:
@@ -315,41 +349,34 @@ def render():
     if "glob_country" not in st.session_state:
         st.session_state["glob_country"] = "Global"
 
-    # Current globals used for initial widget defaults
     gy = _clamp_years(st.session_state["glob_years"], min_year, max_year)
     reg_opts = _available_regions(df, gy)
     reg_default = _coerce_choice(st.session_state["glob_region"], reg_opts, 0)
     cty_opts = _available_countries(df, gy, reg_default)
     cty_default = _coerce_choice(st.session_state["glob_country"], cty_opts, 0)
 
-    # 4) Layout - match example (~80% visuals / 20% filters visually)
+    # 4) Layout
+    left, right = st.columns([4, 1], gap="large")
     left, right = st.columns([4, 1], gap="large")
 
-    # ---------------- RIGHT: Sticky Filters (same parameters) ----------------
-    left, right = st.columns([4, 1], gap="large")  # same proportions as Impact tab
-
+    # ---------------- RIGHT: Sticky Filters ----------------
     with right:
         subsection_title("Filters")
         st.markdown('<div class="gv-filter-card">', unsafe_allow_html=True)
 
-        # ----- defaults ONLY from globals; do not touch widget keys beforehand -----
-        gy_default = (
-            max(DEFAULT_START, min_year),
-            min(DEFAULT_END,   max_year),
-        )
+        gy_default = (max(DEFAULT_START, min_year), min(DEFAULT_END, max_year))
         gy = st.session_state.get("glob_years", gy_default)
 
-        # YEAR slider (first-try apply via on_change)
         years_value = st.slider(
             "Year range",
             min_value=min_year, max_value=max_year,
             value=(int(gy[0]), int(gy[1])),
             step=1,
             key="years_slider",
-            on_change=_filters_changed,  # <— first try applies
+            on_change=_filters_changed,
         )
 
-        # REGION depends on selected years
+        # REGION — resets country
         region_options = _available_regions(df, years_value)
         region_default = (
             st.session_state.get("glob_region", "All Regions")
@@ -361,31 +388,35 @@ def render():
             options=region_options,
             index=region_options.index(region_default),
             key="region_select",
-            on_change=_filters_changed,  # keep dependent widgets crisp
+            on_change=_region_changed,
         )
 
-        # COUNTRY depends on years + region
+        # COUNTRY
         country_options = _available_countries(df, years_value, region_value)
         country_default = (
             st.session_state.get("glob_country", "Global")
             if st.session_state.get("glob_country", "Global") in country_options
             else "Global"
         )
+        try:
+            country_index = country_options.index(country_default)
+        except ValueError:
+            country_default = "Global"
+            country_index = 0
+
         country_value = st.selectbox(
             "Country",
             options=country_options,
-            index=country_options.index(country_default),
+            index=country_index,
             key="country_select",
             on_change=_filters_changed,
         )
 
-        # mirror to globals (for the very first render)
         st.session_state.setdefault("glob_years", years_value)
         st.session_state.setdefault("glob_region", region_value)
         st.session_state.setdefault("glob_country", country_value)
 
         st.markdown("</div>", unsafe_allow_html=True)
-
 
     # ---------------- LEFT: Visuals ----------------
     years   = st.session_state["glob_years"]
@@ -400,7 +431,7 @@ def render():
     else:
         scoped["Year"] = pd.to_numeric(scoped.get("Start Year"), errors="coerce")
 
-    # Fill coordinates by country medians (for maps)
+    # Fill coordinates by country medians
     geo_base = df.dropna(subset=["Latitude","Longitude"]).copy()
     geo_base["Latitude"]  = pd.to_numeric(geo_base["Latitude"], errors="coerce")
     geo_base["Longitude"] = pd.to_numeric(geo_base["Longitude"], errors="coerce")
@@ -414,7 +445,6 @@ def render():
     scoped["Latitude"]  = pd.to_numeric(scoped.get("Latitude"), errors="coerce").combine_first(scoped["CentroidLat"])
     scoped["Longitude"] = pd.to_numeric(scoped.get("Longitude"), errors="coerce").combine_first(scoped["CentroidLon"])
 
-    # ---------- helper stats ----------
     def _top_country(agg_df: pd.DataFrame) -> str:
         if agg_df.empty: return ""
         r = agg_df.sort_values("Events", ascending=False).head(1)
@@ -428,6 +458,11 @@ def render():
     with left:
         _anchor("sec-da-overview")
         section_title("Overview")
+        story_context(
+            "This section summarizes what your current filters are actually showing. "
+            "It gives you a quick sense of volume, which year was most active, and which disaster type dominates. "
+            "Start here to confirm you're looking at the right slice before diving into maps or timelines."
+        )
         st.markdown("""
             This page shows a global analysis of EM-DAT disasters and their impacts. 
 
@@ -457,8 +492,12 @@ def render():
         # ======================
         st.markdown("---")
         section_title("Geographic Overview")
+        story_context(
+            "This section shows how disasters are distributed spatially. "
+            "Seeing them on a map helps spot hotspots, outliers, or regions that consistently report events. "
+            "It’s useful when you want to align response capacity or compare countries within the same time window."
+        )
 
-        # A1) Choropleth - Total Disasters per Country
         _anchor("sec-da-map-country")
         subsection_title("Choropleth - Total Disasters per Country")
         type_choro = type_sel("choro")
@@ -483,7 +522,6 @@ def render():
             )
             _plot(fig_chor, key="da-choro", config=PLOTLY_CFG)
 
-        # A2) Spatial Concentration - Density & Points
         _anchor("sec-da-concentration")
         subsection_title("Spatial Concentration - Density & Event Points")
         type5 = type_sel("conc")
@@ -535,6 +573,11 @@ def render():
         # ======================
         st.markdown("---")
         section_title("Disasters Distribution")
+        story_context(
+            "This section tells you which disaster types actually dominate in the filtered data. "
+            "It’s helpful when you want to compare exposure by hazard type or justify why some hazards get more attention. "
+            "Use it to spot whether the picture is broad (many medium categories) or concentrated (one big category)."
+        )
 
         _anchor("sec-da-top10")
         subsection_title("Top-10 Disaster Types by Frequency")
@@ -560,23 +603,44 @@ def render():
 
             tab_bar, tab_pie = st.tabs(["Bar Chart", "Pie Chart"])
 
+            # --- Bar (light palette)
             with tab_bar:
                 fig_bar = px.bar(
-                    top10, x="Count", y=TYPE_COL, orientation="h",
-                    color=TYPE_COL, color_discrete_sequence=PALETTE_TOPN_BARS, text="Count"
+                    top10,
+                    x="Count",
+                    y=TYPE_COL,
+                    orientation="h",
+                    color=TYPE_COL,
+                    color_discrete_sequence=PALETTE_TOPN_BARS,
+                    text="Count",
                 )
-                fig_bar.update_traces(textposition="outside", cliponaxis=False,
-                                      hovertemplate="<b>%{y}</b><br>Count: %{x:,}<extra></extra>")
-                fig_bar.update_layout(yaxis={"categoryorder": "total ascending"}, bargap=0.25, showlegend=False)
+                fig_bar.update_traces(
+                    textposition="outside",
+                    cliponaxis=False,
+                    hovertemplate="<b>%{y}</b><br>Count: %{x:,}<extra></extra>",
+                )
+                fig_bar.update_layout(
+                    yaxis={"categoryorder": "total ascending"},
+                    bargap=0.25,
+                    showlegend=False,
+                )
                 _plot(fig_bar, key="da-top10-bar", config=PLOTLY_CFG_NOZOOM)
 
+            # --- Pie (light palette)
             with tab_pie:
                 fig_pie = px.pie(
-                    top10, names=TYPE_COL, values="Count", hole=0.3,
-                    color=TYPE_COL, color_discrete_sequence=PALETTE_TOPN_PIE
+                    top10,
+                    names=TYPE_COL,
+                    values="Count",
+                    hole=0.3,
+                    color=TYPE_COL,
+                    color_discrete_sequence=PALETTE_TOPN_PIE,
                 )
-                fig_pie.update_traces(textposition="inside", textinfo="percent+label",
-                                      hovertemplate="<b>%{label}</b><br>Count: %{value:,}<extra></extra>")
+                fig_pie.update_traces(
+                    textposition="inside",
+                    textinfo="percent+label",
+                    hovertemplate="<b>%{label}</b><br>Count: %{value:,}<extra></extra>",
+                )
                 _plot(fig_pie, key="da-top10-pie", config=PLOTLY_CFG_NOZOOM)
 
         # ======================
@@ -584,8 +648,12 @@ def render():
         # ======================
         st.markdown("---")
         section_title("Temporal Patterns")
+        story_context(
+            "This section shows how disaster activity evolves over time. "
+            "It helps answer: are we seeing a one-off spike, a seasonal pattern, or a steady increase? "
+            "This is especially useful for reporting and for aligning preparedness cycles with months or years of higher activity."
+        )
 
-        # C1) Stacked Area Timeline (Top-5 + Others)
         _anchor("sec-da-timeline")
         subsection_title("Disaster Types Over Time - Stacked Area (Top-5 + Others)")
         d3 = scoped.copy()
@@ -615,7 +683,6 @@ def render():
             fig_area.update_layout(xaxis_title="Date", yaxis_title="Events", legend_title="Type", hovermode="x unified")
             _plot(fig_area, key="da-area", config=PLOTLY_CFG)
 
-        # C2) Yearly Distribution (Counts)
         _anchor("sec-da-year-dist")
         subsection_title("Yearly Counts - Line & Bars")
         dY = scoped.copy()
@@ -641,8 +708,13 @@ def render():
                                             hovermode="x unified", showlegend=False)
                 _plot(fig_year_line, key="da-year-line", config=PLOTLY_CFG_NOZOOM)
             with tab_bar:
-                fig_year_bar = px.bar(year_counts, x="Year", y="Count", text="Count",
-                                      color_discrete_sequence=PALETTE_YEAR_BAR)
+                fig_year_bar = px.bar(
+                    year_counts,
+                    x="Year",
+                    y="Count",
+                    text="Count",
+                    color_discrete_sequence=PALETTE_YEAR_BAR,
+                )
                 fig_year_bar.update_traces(textposition="outside", cliponaxis=False)
                 fig_year_bar.update_layout(xaxis_title="Year", yaxis_title="Events",
                                            showlegend=False, bargap=0.2, hovermode="x unified")
@@ -651,62 +723,82 @@ def render():
         # C3) Yearly Distribution by Type (Top-5 + Others)
         _anchor("sec-da-year-bytype")
         subsection_title("Yearly Counts by Type - Stacked / Grouped (Top-5 + Others)")
-        dYT = scoped.dropna(subset=["Year"]).copy().astype({"Year":"int"})
-        if TYPE_COL not in dYT.columns:
-            st.warning(f"Column {TYPE_COL} not found; cannot build type-based distribution.")
+        dYT = scoped.dropna(subset=["Year"]).copy()
+        if dYT.empty:
+            st.info("No data to build yearly type distribution for the current filters.")
         else:
-            TOP_N = 5
-            totals_scoped = (dYT.groupby(TYPE_COL, as_index=False)["DisNo."].count()
-                               .rename(columns={"DisNo.":"TotalCount"})
-                               .sort_values("TotalCount", ascending=False))
-            top_types = totals_scoped[TYPE_COL].head(TOP_N).tolist()
-            full_years = pd.DataFrame({"Year": list(range(years[0], years[1] + 1))})
-            grp = (dYT.groupby(["Year", TYPE_COL], as_index=False)["DisNo."].count()
-                     .rename(columns={"DisNo.":"Count"}))
-            all_types = sorted(dYT[TYPE_COL].dropna().unique().tolist())
-            scaffold = full_years.assign(key=1).merge(
-                pd.DataFrame({TYPE_COL: all_types, "key":1}), on="key"
-            ).drop(columns="key")
-            ytc_full = scaffold.merge(grp, on=["Year", TYPE_COL], how="left").fillna({"Count":0}).astype({"Count":"int"})
-            ytc_top = ytc_full[ytc_full[TYPE_COL].isin(top_types)].copy()
-            ytc_others = (ytc_full[~ytc_full[TYPE_COL].isin(top_types)]
-                          .groupby("Year", as_index=False)["Count"].sum()
-                          .assign(**{TYPE_COL: "Others"}))
-            ytc_plot = pd.concat([ytc_top, ytc_others], ignore_index=True)
-            type_order = top_types + (["Others"] if "Others" in ytc_plot[TYPE_COL].unique() else [])
-            ytc_plot[TYPE_COL] = pd.Categorical(ytc_plot[TYPE_COL], categories=type_order, ordered=True)
-            ytc_plot = ytc_plot.sort_values(["Year", TYPE_COL])
-            story_context("Stacked bars show mix by year; grouped contrasts type magnitudes.")
-            tab_stack, tab_group = st.tabs(["Stacked Bars", "Grouped Bars"])
-            common_orders = {"category_orders": {TYPE_COL: type_order}}
-            with tab_stack:
-                fig_stack = px.bar(
-                    ytc_plot, x="Year", y="Count", color=TYPE_COL, **common_orders,
-                    color_discrete_sequence=PALETTE_YEAR_BYTYPE
-                )
-                for tr in fig_stack.data:
-                    if tr.name == "Others":
-                        tr.marker.color = OTHERS_COLOR
-                fig_stack.update_layout(barmode="stack", xaxis_title="Year", yaxis_title="Events",
-                                        legend_title="Type", hovermode="x unified", bargap=0.15)
-                _plot(fig_stack, key="da-year-type-stack", config=PLOTLY_CFG_NOZOOM)
-            with tab_group:
-                fig_group = px.bar(
-                    ytc_plot, x="Year", y="Count", color=TYPE_COL, **common_orders,
-                    color_discrete_sequence=PALETTE_YEAR_BYTYPE
-                )
-                for tr in fig_group.data:
-                    if tr.name == "Others":
-                        tr.marker.color = OTHERS_COLOR
-                fig_group.update_layout(barmode="group", xaxis_title="Year", yaxis_title="Events",
-                                        legend_title="Type", hovermode="x unified", bargap=0.20)
-                _plot(fig_group, key="da-year-type-group", config=PLOTLY_CFG_NOZOOM)
+            dYT = dYT.astype({"Year": "int"})
+            if TYPE_COL not in dYT.columns:
+                st.warning(f"Column {TYPE_COL} not found; cannot build type-based distribution.")
+            else:
+                TOP_N = 5
+                totals_scoped = (dYT.groupby(TYPE_COL, as_index=False)["DisNo."].count()
+                                   .rename(columns={"DisNo.":"TotalCount"})
+                                   .sort_values("TotalCount", ascending=False))
+                top_types = totals_scoped[TYPE_COL].head(TOP_N).tolist()
+                full_years = pd.DataFrame({"Year": list(range(years[0], years[1] + 1))})
+                grp = (dYT.groupby(["Year", TYPE_COL], as_index=False)["DisNo."].count()
+                         .rename(columns={"DisNo.":"Count"}))
+                all_types = sorted(dYT[TYPE_COL].dropna().unique().tolist())
+                if not all_types:
+                    st.info("No disaster types available for this period/region/country.")
+                else:
+                    scaffold = full_years.assign(key=1).merge(
+                        pd.DataFrame({TYPE_COL: all_types, "key": 1}), on="key"
+                    ).drop(columns="key")
+                    ytc_full = scaffold.merge(grp, on=["Year", TYPE_COL], how="left").fillna({"Count": 0}).astype({"Count": "int"})
+                    ytc_top = ytc_full[ytc_full[TYPE_COL].isin(top_types)].copy()
+                    ytc_others = (ytc_full[~ytc_full[TYPE_COL].isin(top_types)]
+                                  .groupby("Year", as_index=False)["Count"].sum()
+                                  .assign(**{TYPE_COL: "Others"}))
+                    ytc_plot = pd.concat([ytc_top, ytc_others], ignore_index=True)
+                    type_order = top_types + (["Others"] if "Others" in ytc_plot[TYPE_COL].unique() else [])
+                    ytc_plot[TYPE_COL] = pd.Categorical(ytc_plot[TYPE_COL], categories=type_order, ordered=True)
+                    ytc_plot = ytc_plot.sort_values(["Year", TYPE_COL])
+                    story_context("Stacked bars show mix by year; grouped contrasts type magnitudes.")
+                    tab_stack, tab_group = st.tabs(["Stacked Bars", "Grouped Bars"])
+                    common_orders = {"category_orders": {TYPE_COL: type_order}}
+                    with tab_stack:
+                        fig_stack = px.bar(
+                            ytc_plot,
+                            x="Year",
+                            y="Count",
+                            color=TYPE_COL,
+                            **common_orders,
+                            color_discrete_sequence=PALETTE_YEAR_BYTYPE,
+                        )
+                        for tr in fig_stack.data:
+                            if tr.name == "Others":
+                                tr.marker.color = OTHERS_COLOR
+                        fig_stack.update_layout(barmode="stack", xaxis_title="Year", yaxis_title="Events",
+                                                legend_title="Type", hovermode="x unified", bargap=0.15)
+                        _plot(fig_stack, key="da-year-type-stack", config=PLOTLY_CFG_NOZOOM)
+                    with tab_group:
+                        fig_group = px.bar(
+                            ytc_plot,
+                            x="Year",
+                            y="Count",
+                            color=TYPE_COL,
+                            **common_orders,
+                            color_discrete_sequence=PALETTE_YEAR_BYTYPE,
+                        )
+                        for tr in fig_group.data:
+                            if tr.name == "Others":
+                                tr.marker.color = OTHERS_COLOR
+                        fig_group.update_layout(barmode="group", xaxis_title="Year", yaxis_title="Events",
+                                                legend_title="Type", hovermode="x unified", bargap=0.20)
+                        _plot(fig_group, key="da-year-type-group", config=PLOTLY_CFG_NOZOOM)
 
         # ======================
         # D - Temporal & Spatial Heat
         # ======================
         st.markdown("---")
         section_title("Temporal & Spatial Heat")
+        story_context(
+            "This section is for finding ‘busy’ periods or lat/lon zones that are harder hit. "
+            "It helps surface months that repeatedly report higher counts, which is good for preparedness calendars. "
+            "The lat/lon heat also shows whether events cluster in a narrow band or are widely dispersed."
+        )
 
         _anchor("sec-da-calendar")
         subsection_title("Calendar Heatmap (Year × Month)")
@@ -758,6 +850,5 @@ def render():
                                  coloraxis_colorbar=dict(title="Density"))
             _plot(fig_xy, key="da-xy-heat", config=PLOTLY_CFG)
 
-        # Footer
         st.markdown("---")
         st.caption("Source: EM-DAT - Centre for Research on the Epidemiology of Disasters (CRED).")
