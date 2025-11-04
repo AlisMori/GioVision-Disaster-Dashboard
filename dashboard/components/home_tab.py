@@ -93,7 +93,7 @@ def render():
     subsection_title("Project & Team")
     st.markdown(
         """
-        **Team GeoVision** — Aleena, Fatima, Minal, Alena, and Zhyldyz  
+        **Team GeoVision** — Aleena Fatima, Fatima Faisal, Minal Haque, Alena Bobyleva, and Zhyldyz Kadyrovna Davydova 
         Course: ICT305 — Data Visualisation and Simulation, Murdoch University (2025)  
         Repo: `GioVision-Disaster-Dashboard` on GitHub.
         """
