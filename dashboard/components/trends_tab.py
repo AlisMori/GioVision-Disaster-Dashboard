@@ -7,15 +7,13 @@ import streamlit as st
 # ===========================
 # THEME HELPERS
 # ===========================
-def _anchor(id_: str):
-    st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
-
-
 def section_title(text: str):
+    """Main section bar (registered by app.py capture)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
 
 def subsection_title(text: str):
+    """Smaller subsection bar."""
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
 
 
@@ -29,6 +27,22 @@ def _load_module_from_path(module_name: str, filepath: str):
 
 
 def render():
+    # --- Overview (now directly, no anchor div before it) ---
+    section_title("Overview")
+    st.markdown(
+        "This page outlines the trends noticed during our disaster-impact analysis and "
+        "links directly to dedicated sections where each trend is operationalized."
+    )
+    st.markdown(
+        "- Impact Gap: People in **Least Developed Countries (LDCs)** are more affected than in developed nations.\n"
+        "- Climate Shift: From 2010 to 2025, the frequency of **severe weather events** (Floods, Storms, Droughts, Wildfires, "
+        "and Extreme Temperatures) has increased over time, particularly in the **past few years (2018–2025)**.\n"
+        "- Earthquakes VS Floods: Although **floods occur more often than earthquakes**, earthquakes have a **higher average human impact** per "
+        "event — measured in deaths, injuries, and total affected population."
+    )
+
+    st.markdown("---")
+
     # --- Tabs styling (kept from your version) ---
     st.markdown(
         """
@@ -55,23 +69,6 @@ def render():
         unsafe_allow_html=True,
     )
 
-    # --- Overview ---
-    _anchor("sec-hyp-overview")
-    section_title("Overview")
-    st.markdown(
-        "This page outlines the trends noticed during our disaster-impact analysis and "
-        "links directly to dedicated sections where each trend is operationalized."
-    )
-    st.markdown(
-        "- Impact Gap: People in **Least Developed Countries (LDCs)** are more affected than in developed nations.\n"
-        "- Climate Shift: From 2010 to 2025, the frequency of **severe weather events** (Floods, Storms, Droughts, Wildfires, "
-        "and Extreme Temperatures) has increased over time, particularly in the **past few years (2018–2025)**.\n"
-        "- Earthquakes VS Floods: Although **floods occur more often than earthquakes**, earthquakes have a **higher average human impact** per "
-        "event — measured in deaths, injuries, and total affected population."
-    )
-
-    st.markdown("---")
-
     # --- Tab loader setup ---
     base_dir = os.path.dirname(os.path.abspath(__file__))
     paths = {
@@ -83,7 +80,6 @@ def render():
     tabs = st.tabs(list(paths.keys()))
     for tab, (label, path) in zip(tabs, paths.items()):
         with tab:
-            _anchor(f"sec-{label.lower().replace(' ', '-')}")
             try:
                 mod = _load_module_from_path(label.replace(" ", "").lower(), path)
                 if hasattr(mod, "render"):
