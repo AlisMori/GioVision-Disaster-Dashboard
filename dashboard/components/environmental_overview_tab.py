@@ -2,7 +2,7 @@ import math
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import plotly.graph_objects as go  # keep this for consistency
+import plotly.graph_objects as go  # kept this for consistency
 import reverse_geocoder as rg
 import pycountry
 from datetime import datetime
@@ -10,9 +10,9 @@ from datetime import datetime
 from src.data_pipeline.data.fetch_eonet_data import fetch_eonet_data
 from src.utils.merge_datasets import merge_datasets
 
-# ==========================
+
 # Theme Helpers
-# ===========================
+
 def section_title(text: str):
     st.markdown(f"<h2 style='color:#59B3A9;'>{text}</h2>", unsafe_allow_html=True)
 
@@ -25,9 +25,9 @@ def _fmt(dt):
     except Exception:
         return "—"
 
-# ===========================
+
 # Colors
-# ===========================
+
 ALERT_COLORS = {
     "Red": "#EA6455",
     "Orange": "#EFB369",
@@ -35,9 +35,9 @@ ALERT_COLORS = {
     "Unknown": "#8A8A8A",
 }
 
-# ===========================
+
 # Map Helpers
-# ===========================
+
 def _center_zoom_from_points(lat_series, lon_series):
     lats = pd.to_numeric(lat_series, errors="coerce").dropna()
     lons = pd.to_numeric(lon_series, errors="coerce").dropna()
@@ -53,16 +53,16 @@ def _center_zoom_from_points(lat_series, lon_series):
         zoom = 5.0
     return center, zoom
 
-# ===========================
+
 # Data Loader
-# ===========================
+
 @st.cache_data(ttl=3600, show_spinner="Fetching fresh data from NASA EONET...")
 def load_eonet_data(days=365):
     return fetch_eonet_data(days=days, limit=10000)
 
-# ===========================
+
 # Country Derivation
-# ===========================
+
 def derive_country(df):
     if 'latitude' in df.columns and 'longitude' in df.columns:
         coords = list(zip(df['latitude'], df['longitude']))
@@ -73,17 +73,16 @@ def derive_country(df):
         df['country'] = 'Unknown'
     return df
 
-# ===========================
+
 # Filters (Left Sidebar)
-# ===========================
+
 def col_filter_wrapper(df):
     return "All Types", "All Alerts", "All Countries"
 
-# ===========================
+
 # Main Render Function
-# ===========================
+
 def render():
-    # Get days from sidebar first
     with st.sidebar:
         days = st.slider("Number of past days to fetch", 30, 365, 365, key="sidebar_days")
     
@@ -96,7 +95,7 @@ def render():
 
     df = derive_country(df)
 
-    # Filters (no days returned anymore)
+    # Filters 
     selected_disaster_type, selected_alert, selected_country = col_filter_wrapper(df)
     df_filtered = df.copy()
     if selected_disaster_type != "All Types":
@@ -121,11 +120,6 @@ def render():
     col4.metric("Latest Event", _fmt(df_filtered['event_date'].max()))
     st.markdown("---")
 
-    # ===========================
-    # 3-Column Layout: Spacer + Content + Sticky Filters
-    # ===========================
-    
-    # Add custom CSS for 3-column layout with sticky right sidebar
     st.markdown("""
         <style>
         /* Make the filter column sticky and scrollable */
@@ -141,7 +135,6 @@ def render():
         </style>
         """, unsafe_allow_html=True)
     
-    # Create 3-column layout: small spacer, main content, sticky filters
     spacer_col, content_col, filter_col = st.columns([0.5, 6, 1.5])
     
     with filter_col:
@@ -166,9 +159,9 @@ def render():
             df_filtered = df_filtered[df_filtered["country"] == local_country]
     
     with content_col:
-        # ===========================
+     
         # 1. Global Disaster Map
-        # ===========================
+       
         subsection_title("Global Disaster Map")
         st.markdown("This interactive map displays the geographic distribution of all disaster events. Each marker represents a disaster, color-coded by alert level, and shows detailed information on hover.")
         df_map = df_filtered.dropna(subset=["latitude", "longitude"])
@@ -191,9 +184,9 @@ def render():
         else:
             st.info("No geographic data available for the selected filters.")
 
-        # ===========================
+       
         # 2. Disasters Over Time
-        # ===========================
+      
         st.markdown("---")
         subsection_title("Disasters Over Time")
         st.markdown("This line chart tracks the monthly trend of disaster events, helping identify patterns and seasonal variations in disaster occurrences.")
@@ -208,9 +201,9 @@ def render():
         fig_line.update_layout(height=450)
         st.plotly_chart(fig_line, use_container_width=True)
 
-        # ===========================
+      
         # 3. Disaster Type & Alert Level Distribution
-        # ===========================
+      
         st.markdown("---")
         subsection_title("Disaster Type Distribution")
         st.markdown("This bar chart shows the frequency of different disaster types, highlighting which categories are most prevalent in the selected time period.")
@@ -254,9 +247,9 @@ def render():
             fig_month.update_layout(xaxis_title="Month", yaxis_title="Number of Events", showlegend=False, height=400)
             st.plotly_chart(fig_month, use_container_width=True)
 
-        # ===========================
-        # 4. Bubble Chart (No Alert Levels)
-        # ===========================
+       
+        # 4. Bubble Chart 
+        
         st.markdown("---")
         subsection_title("Disaster Frequency & Severity Analysis by Country")
         st.markdown("""
@@ -311,9 +304,9 @@ def render():
         else:
             st.info("No data available for this disaster type.")
 
-        # ===========================
-        # 5. Recent Events Table (Fixed)
-        # ===========================
+        
+        # 5. Recent Events Table 
+       
         st.markdown("---")
         subsection_title("Recent Disaster Events")
         st.markdown("This table lists the most recent disaster events with key details including type, date, alert level, and location.")
