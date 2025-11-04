@@ -3,17 +3,22 @@ import streamlit as st
 import datetime
 import pandas as pd
 
-# ===========================
-# THEME HELPERS
-# ===========================
+# =========================
+# RENDERING HELPERS
+# =========================
 def section_title(text: str):
-    """Theme-aligned section bar (matches app theme)."""
+    """Main section bar (registered by app.py capture)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
+
 def subsection_title(text: str):
-    """Theme-aligned subsection bar (matches app theme)."""
+    """Smaller subsection bar."""
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
 
+
+def story_context(text: str):
+    st.markdown(f'<div class="gv-context">{text}</div>', unsafe_allow_html=True)
+    
 # ===========================
 # MAIN RENDER
 # ===========================

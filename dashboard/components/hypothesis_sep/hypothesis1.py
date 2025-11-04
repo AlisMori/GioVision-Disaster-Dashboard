@@ -14,12 +14,19 @@ def _anchor(id_: str):
     st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
 
 def section_title(text: str):
+    """Main section bar (registered by app.py capture)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
+
 def subsection_title(text: str):
-    # use your default styles.css subsection style
+    """Smaller subsection bar."""
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
 
+
+def story_context(text: str):
+    """One-line context/caption above a visual."""
+    st.markdown(f'<div class="gv-context">{text}</div>', unsafe_allow_html=True)
+    
 # ===========================
 # CONFIG
 # ===========================

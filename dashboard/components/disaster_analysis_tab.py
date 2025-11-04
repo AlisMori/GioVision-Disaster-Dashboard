@@ -1,5 +1,3 @@
-# dashboard/components/disaster_analysis_tab.py
-
 """
 Disaster Analysis page using EM-DAT.
 
@@ -33,7 +31,7 @@ EMDAT_PATHS = [
     "dashboard/data/processed/emdat_cleaned.csv",
 ]
 
-DEFAULT_START = 2022
+DEFAULT_START = 2010
 DEFAULT_END   = 2025
 
 TYPE_COL = "Disaster Type"
@@ -64,48 +62,37 @@ PLOTLY_CFG_NOZOOM = {
 # =========================
 # THEME
 # =========================
-# Single-hue scales for intensity
 PALETTE_COUNTRY_CHORO = "Blues"
 PALETTE_CONC_MAP      = "Oranges"
 PALETTE_CALENDAR      = "Greens"
-
-# Light, modern categorical palette (not dark, not dusty)
-# mostly Tailwind-300-ish colors: readable, bright
 PALETTE_NATURAL = [
-    "#3B82F6",  # clear blue
-    "#EF4444",  # clear red
-    "#F97316",  # clear orange
-    "#22C55E",  # clear green
-    "#06B6D4",  # clear cyan/teal
-    "#6366F1",  # clear indigo
-    "#EAB308",  # amber/yellow
-    "#8B5CF6",  # violet
-    "#14B8A6",  # teal
-    "#F43F5E",  # rose
+    "#3B82F6", "#EF4444", "#F97316", "#22C55E", "#06B6D4",
+    "#6366F1", "#EAB308", "#8B5CF6", "#14B8A6", "#F43F5E",
 ]
-
 PALETTE_TOPN_BARS     = PALETTE_NATURAL
 PALETTE_TOPN_PIE      = PALETTE_NATURAL
 PALETTE_STACKED_AREA  = ["#3B82F6", "#22C55E", "#F97316", "#EF4444", "#06B6D4"]
 PALETTE_YEAR_BYTYPE   = PALETTE_NATURAL
-PALETTE_YEAR_LINE     = ["#2563EB"]      # slightly stronger blue for the line
-PALETTE_YEAR_BAR      = ["#3B82F6"]      # clear blue for yearly bars
-OTHERS_COLOR          = "#D1D5DB"        # light gray for "Others"
+PALETTE_YEAR_LINE     = ["#2563EB"]
+PALETTE_YEAR_BAR      = ["#3B82F6"]
+OTHERS_COLOR          = "#D1D5DB"
 
 # =========================
 # RENDERING HELPERS
 # =========================
-def _anchor(id_: str):
-    st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
-
 def section_title(text: str):
+    """Main section bar (registered by app.py capture)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
+
 def subsection_title(text: str):
+    """Smaller subsection bar."""
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
+
 
 def story_context(text: str):
     st.markdown(f'<div class="gv-context">{text}</div>', unsafe_allow_html=True)
+
 
 def _plot(fig, key: str, config: Dict):
     """Apply uirevision to keep zoom/selection on rerun, then plot."""
@@ -125,11 +112,13 @@ def _first_existing_path(paths: List[str]) -> Optional[str]:
             pass
     return None
 
+
 def _first_country_only(s: str) -> str:
     if not isinstance(s, str) or not s.strip():
         return "Unknown"
     s = s.replace(" & ", ",").replace(" and ", ",").replace("/", ",").replace(";", ",")
     return s.split(",")[0].strip() or "Unknown"
+
 
 @st.cache_data(show_spinner=False)
 def load_emdat(path: str) -> pd.DataFrame:
@@ -174,7 +163,7 @@ def load_emdat(path: str) -> pd.DataFrame:
 
     return df
 
-# ---------- availability helpers ----------
+
 def _filter_by_years(df: pd.DataFrame, years: Tuple[int,int]) -> pd.DataFrame:
     lo, hi = years
     if "Start Year" in df.columns and df["Start Year"].notna().any():
@@ -183,10 +172,12 @@ def _filter_by_years(df: pd.DataFrame, years: Tuple[int,int]) -> pd.DataFrame:
         return df[(df["Event Date"].dt.year >= lo) & (df["Event Date"].dt.year <= hi)]
     return df
 
+
 def _available_regions(df: pd.DataFrame, years: Tuple[int,int]) -> List[str]:
     d = _filter_by_years(df, years)
     regs = sorted([r for r in d["Region"].dropna().astype(str).unique() if r.strip()])
     return ["All Regions"] + regs
+
 
 def _available_countries(df: pd.DataFrame, years: Tuple[int,int], region: str) -> List[str]:
     d = _filter_by_years(df, years)
@@ -195,10 +186,12 @@ def _available_countries(df: pd.DataFrame, years: Tuple[int,int], region: str) -
     countries = sorted([c for c in d["Country"].dropna().astype(str).unique() if c.strip()])
     return ["Global"] + countries
 
+
 def _coerce_choice(current: Optional[str], options: List[str], fallback_idx: int = 0) -> str:
     if not options: return ""
     if current in options: return current
     return options[min(fallback_idx, len(options)-1)]
+
 
 def _apply_scope(df: pd.DataFrame, years: Tuple[int,int], region: str, country: str) -> pd.DataFrame:
     d = _filter_by_years(df, years)
@@ -208,8 +201,10 @@ def _apply_scope(df: pd.DataFrame, years: Tuple[int,int], region: str, country: 
         d = d[d["Country"] == country]
     return d
 
+
 def constrained_type_selector(
-    df: pd.DataFrame, label_key_prefix: str, years_sel: Tuple[int,int], region_sel: str, country_sel: str, type_col: str
+    df: pd.DataFrame, label_key_prefix: str, years_sel: Tuple[int,int], region_sel: str,
+    country_sel: str, type_col: str
 ) -> str:
     d = _apply_scope(df, years_sel, region_sel, country_sel)
     if type_col not in d.columns:
@@ -219,6 +214,7 @@ def constrained_type_selector(
     prev = st.session_state.get(key_state, "All")
     coerced = _coerce_choice(prev, opts, 0)
     return st.selectbox("Disaster Type", opts, index=opts.index(coerced), key=key_state)
+
 
 # ---- Geo helpers ----
 REGION_BBOX = {
@@ -237,8 +233,8 @@ def _clip_to_region_bbox(d: pd.DataFrame, region: str) -> pd.DataFrame:
     dd["Longitude"] = pd.to_numeric(dd["Longitude"], errors="coerce")
     return dd[(dd["Latitude"].between(lat_min, lat_max)) & (dd["Longitude"].between(lon_min, lon_max))]
 
+
 def _clamp_years(val, lo, hi):
-    """Clamp a (start,end) tuple into [lo,hi] and ensure start<=end."""
     if not isinstance(val, (tuple, list)) or len(val) != 2:
         return (lo, hi)
     a, b = int(val[0]), int(val[1])
@@ -247,15 +243,15 @@ def _clamp_years(val, lo, hi):
     if a > b: a, b = b, a
     return (a, b)
 
-# --- Helpers to sync filters on first try ---
+
 def _filters_changed():
     st.session_state["glob_years"]   = st.session_state.get("years_slider")
     st.session_state["glob_region"]  = st.session_state.get("region_select", "All Regions")
     st.session_state["glob_country"] = st.session_state.get("country_select", "Global")
     st.rerun()
 
+
 def _region_changed():
-    # when region changes, ignore previously selected country and reset it
     st.session_state["glob_region"] = st.session_state.get("region_select", "All Regions")
     st.session_state["glob_country"] = "Global"
     st.session_state["glob_years"] = st.session_state.get("years_slider", st.session_state.get("glob_years"))
@@ -266,60 +262,24 @@ def _region_changed():
 # PAGE RENDER
 # =========================
 def render():
-    # Styling: make section title -> text gap bigger, keep filters sticky
-    st.markdown(
-        """
-        <style>
-        .main .block-container { overflow: visible !important; }
-        [data-testid="stColumn"] > div,
-        [data-testid="column"] > div { overflow: visible !important; }
-
-        [data-testid="column"]:nth-of-type(2) > div {
-            position: sticky;
-            top: 90px;
-            align-self: flex-start !important;
-            z-index: 2;
-        }
-        .gv-filter-card{
-            background: rgba(255,255,255,0.92);
-            border: 1px solid #E6E6E6;
-            border-radius: 12px;
-            padding: 14px 14px 10px 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            max-width: 320px;
-            max-height: calc(100vh - 140px);
-            overflow: auto;
-            font-style: normal; font-weight: 400;
-        }
-        /* section to text spacing */
-        .gv-section-title {
-            margin-top: 1.6rem;
-            margin-bottom: 1.4rem;  /* bigger gap before context */
-        }
-        .gv-subsection-title {
-            margin-top: 1.3rem;
-            margin-bottom: 0.8rem;
-        }
-        .gv-context {
-            font-style: normal;
-            color:#2E2E2E;
-            line-height:1.45;
-            margin-bottom: 1.0rem;
-        }
-        .stPlotlyChart {
-            margin-top: 0.6rem !important;
-        }
-
-        @media (max-width:1100px){
-            [data-testid="column"]:nth-of-type(2) > div { position: static; }
-            .gv-filter-card { max-width: 100%; max-height: none; }
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
+    # 1) Show overview first
+    section_title("Overview")
+    story_context(
+        "This section summarizes what the current filters are displaying. "
+        "It provides an overview of disaster volume, active years, and dominant hazard types. "
+        "Begin here to confirm that the selected scope is correct before exploring spatial or temporal views."
     )
+    st.markdown("""
+        This page presents a global analysis of EM-DAT disasters and their impacts.
 
-    # 1) Load data
+        - The filter panel on the right controls all visuals.
+        - Patterns can be explored across **time** and **space**.
+        - Regions with higher reported activity can be identified.
+        - Dominant disaster types can be highlighted.
+        - Periods of concentrated activity can be examined.
+    """)
+
+    # 3) Load data
     emdat_used_path = _first_existing_path(EMDAT_PATHS)
     if not emdat_used_path:
         st.error(
@@ -334,14 +294,14 @@ def render():
         st.error(f"EM-DAT file is missing columns: {', '.join(missing)}")
         st.stop()
 
-    # 2) Dataset bounds
+    # 4) dataset bounds
     if "Start Year" in df and df["Start Year"].notna().any():
         min_year = int(pd.to_numeric(df["Start Year"], errors="coerce").dropna().min())
         max_year = int(pd.to_numeric(df["Start Year"], errors="coerce").dropna().max())
     else:
         min_year, max_year = 1970, 2025
 
-    # 3) Seed *global* state only
+    # 5) seed session state
     if "glob_years" not in st.session_state:
         st.session_state["glob_years"] = (max(DEFAULT_START, min_year), min(DEFAULT_END, max_year))
     if "glob_region" not in st.session_state:
@@ -355,14 +315,15 @@ def render():
     cty_opts = _available_countries(df, gy, reg_default)
     cty_default = _coerce_choice(st.session_state["glob_country"], cty_opts, 0)
 
-    # 4) Layout
+    # 6) layout
     left, right = st.columns([4, 1], gap="large")
     left, right = st.columns([4, 1], gap="large")
 
     # ---------------- RIGHT: Sticky Filters ----------------
     with right:
-        subsection_title("Filters")
+
         st.markdown('<div class="gv-filter-card">', unsafe_allow_html=True)
+        subsection_title("Filters")
 
         gy_default = (max(DEFAULT_START, min_year), min(DEFAULT_END, max_year))
         gy = st.session_state.get("glob_years", gy_default)
@@ -376,7 +337,6 @@ def render():
             on_change=_filters_changed,
         )
 
-        # REGION — resets country
         region_options = _available_regions(df, years_value)
         region_default = (
             st.session_state.get("glob_region", "All Regions")
@@ -391,7 +351,6 @@ def render():
             on_change=_region_changed,
         )
 
-        # COUNTRY
         country_options = _available_countries(df, years_value, region_value)
         country_default = (
             st.session_state.get("glob_country", "Global")
@@ -418,7 +377,7 @@ def render():
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # ---------------- LEFT: Visuals ----------------
+    # 7) compute scoped data
     years   = st.session_state["glob_years"]
     region  = st.session_state["glob_region"]
     country = st.session_state["glob_country"]
@@ -445,6 +404,7 @@ def render():
     scoped["Latitude"]  = pd.to_numeric(scoped.get("Latitude"), errors="coerce").combine_first(scoped["CentroidLat"])
     scoped["Longitude"] = pd.to_numeric(scoped.get("Longitude"), errors="coerce").combine_first(scoped["CentroidLon"])
 
+    # helpers that need scoped data
     def _top_country(agg_df: pd.DataFrame) -> str:
         if agg_df.empty: return ""
         r = agg_df.sort_values("Events", ascending=False).head(1)
@@ -455,50 +415,23 @@ def render():
         s = df_in.groupby(TYPE_COL)["DisNo."].count().sort_values(ascending=False)
         return str(s.index[0]) if len(s) else ""
 
+    # define type_sel *now* so it can see df, years, region, country
+    def type_sel(prefix: str) -> str:
+        return constrained_type_selector(df, prefix, years, region, country, TYPE_COL)
+
+    # ---------------- LEFT: Visuals ----------------
     with left:
-        _anchor("sec-da-overview")
-        section_title("Overview")
-        story_context(
-            "This section summarizes what your current filters are actually showing. "
-            "It gives you a quick sense of volume, which year was most active, and which disaster type dominates. "
-            "Start here to confirm you're looking at the right slice before diving into maps or timelines."
-        )
-        st.markdown("""
-            This page shows a global analysis of EM-DAT disasters and their impacts. 
-
-            - Use the filter panel on the right to control all visuals.
-            - Explore patterns across **time** and **space**
-            - See **which areas are most affected**
-            - Identify **which disaster types dominate**
-            - Observe **when disasters concentrate**
-        """)
-
-        total_events = int(scoped["DisNo."].count())
-        peak_year = ""
-        if scoped["Year"].notna().any():
-            ycnt = scoped.dropna(subset=["Year"]).groupby("Year")["DisNo."].count()
-            if not ycnt.empty: peak_year = int(ycnt.idxmax())
-        top_type_all = _top_type(scoped)
-        story_context(
-            f"Showing {total_events:,} events; peak in {peak_year} - top type: {top_type_all}."
-            if total_events else "No events match the current filters."
-        )
-
-        def type_sel(prefix: str) -> str:
-            return constrained_type_selector(df, prefix, years, region, country, TYPE_COL)
-
         # ======================
         # A - Geographic Overview
         # ======================
         st.markdown("---")
         section_title("Geographic Overview")
         story_context(
-            "This section shows how disasters are distributed spatially. "
-            "Seeing them on a map helps spot hotspots, outliers, or regions that consistently report events. "
-            "It’s useful when you want to align response capacity or compare countries within the same time window."
+            "This section illustrates the spatial distribution of recorded disasters. "
+            "Viewing events on a map helps reveal hotspots, outliers, and regions with consistently higher activity. "
+            "It is useful for regional comparisons within the selected time window."
         )
 
-        _anchor("sec-da-map-country")
         subsection_title("Choropleth - Total Disasters per Country")
         type_choro = type_sel("choro")
         d1 = scoped.copy()
@@ -522,14 +455,15 @@ def render():
             )
             _plot(fig_chor, key="da-choro", config=PLOTLY_CFG)
 
-        _anchor("sec-da-concentration")
         subsection_title("Spatial Concentration - Density & Event Points")
         type5 = type_sel("conc")
         d5 = scoped.copy()
         if type5 and type5 != "All" and TYPE_COL in d5.columns:
             d5 = d5[d5[TYPE_COL] == type5]
         d5 = _clip_to_region_bbox(d5, region)
-        story_context("Hotspots cluster within selected scope; darker means higher concentration.")
+        story_context("Hotspots cluster within the selected scope; darker tones indicate higher concentration.")
+        # --- requested space between text and map
+        st.markdown("&nbsp;", unsafe_allow_html=True)
         z = np.ones(len(d5))
         if d5.empty:
             st.info("No mappable events for the selected filters.")
@@ -574,12 +508,11 @@ def render():
         st.markdown("---")
         section_title("Disasters Distribution")
         story_context(
-            "This section tells you which disaster types actually dominate in the filtered data. "
-            "It’s helpful when you want to compare exposure by hazard type or justify why some hazards get more attention. "
-            "Use it to spot whether the picture is broad (many medium categories) or concentrated (one big category)."
+            "This section highlights the disaster types that are most frequently recorded in the filtered dataset. "
+            "It supports comparisons of hazard exposure and explains why certain categories may receive greater emphasis. "
+            "It also shows whether the distribution is broad or concentrated in a few types."
         )
 
-        _anchor("sec-da-top10")
         subsection_title("Top-10 Disaster Types by Frequency")
         d2 = scoped.copy()
         freq = (
@@ -599,11 +532,11 @@ def render():
                     ignore_index=True
                 )
             dom = str(top10.iloc[0][TYPE_COL]) if not top10.empty else ""
-            story_context(f"Frequency is dominated by {dom} within current selection.")
+            story_context(f"Frequency is primarily driven by {dom} within the current selection.")
 
             tab_bar, tab_pie = st.tabs(["Bar Chart", "Pie Chart"])
 
-            # --- Bar (light palette)
+            # --- Bar
             with tab_bar:
                 fig_bar = px.bar(
                     top10,
@@ -626,7 +559,7 @@ def render():
                 )
                 _plot(fig_bar, key="da-top10-bar", config=PLOTLY_CFG_NOZOOM)
 
-            # --- Pie (light palette)
+            # --- Pie
             with tab_pie:
                 fig_pie = px.pie(
                     top10,
@@ -649,12 +582,11 @@ def render():
         st.markdown("---")
         section_title("Temporal Patterns")
         story_context(
-            "This section shows how disaster activity evolves over time. "
-            "It helps answer: are we seeing a one-off spike, a seasonal pattern, or a steady increase? "
-            "This is especially useful for reporting and for aligning preparedness cycles with months or years of higher activity."
+            "This section shows how disaster activity changes over time. "
+            "It distinguishes isolated spikes from recurring or seasonal trends and from gradual increases. "
+            "These temporal views support reporting and planning of preparedness cycles."
         )
 
-        _anchor("sec-da-timeline")
         subsection_title("Disaster Types Over Time - Stacked Area (Top-5 + Others)")
         d3 = scoped.copy()
         if "Event Date" in d3.columns and d3["Event Date"].notna().any():
@@ -671,7 +603,7 @@ def render():
         d3a["Type_6"] = d3a[TYPE_COL].where(d3a[TYPE_COL].isin(top_labels), "Others")
         area = (d3a.groupby(["YearMonth","Type_6"], as_index=False)["DisNo."]
                 .count().rename(columns={"DisNo.":"Count"}))
-        story_context("Top five types reveal shifting activity across months.")
+        story_context("Top hazard types display changing activity across months.")
         if not area.empty:
             area["YearMonth_dt"] = pd.to_datetime(area["YearMonth"], errors="coerce")
             area = area.sort_values("YearMonth_dt")
@@ -679,17 +611,17 @@ def render():
             color_map = {t: PALETTE_STACKED_AREA[i % len(PALETTE_STACKED_AREA)] for i, t in enumerate(sorted(uniq))}
             color_map["Others"] = OTHERS_COLOR
             fig_area = px.area(area, x="YearMonth_dt", y="Count", color="Type_6", color_discrete_map=color_map)
+            fig_area.update_traces(line=dict(width=0))
             fig_area.update_traces(hovertemplate="<b>%{x|%Y-%m}</b><br>%{fullData.name}: %{y:,}<extra></extra>")
             fig_area.update_layout(xaxis_title="Date", yaxis_title="Events", legend_title="Type", hovermode="x unified")
             _plot(fig_area, key="da-area", config=PLOTLY_CFG)
 
-        _anchor("sec-da-year-dist")
         subsection_title("Yearly Counts - Line & Bars")
         dY = scoped.copy()
         type_year = type_sel("year")
         if type_year and type_year != "All" and TYPE_COL in dY.columns:
             dY = dY[dY[TYPE_COL] == type_year]
-        story_context("Line shows annual totals; bars confirm counts for chosen scope.")
+        story_context("Annual totals are shown as a line; bars provide count confirmation for the selected scope.")
         year_counts = (
             dY.dropna(subset=["Year"])
               .groupby("Year", as_index=False)["DisNo."].count()
@@ -720,8 +652,7 @@ def render():
                                            showlegend=False, bargap=0.2, hovermode="x unified")
                 _plot(fig_year_bar, key="da-year-bar", config=PLOTLY_CFG_NOZOOM)
 
-        # C3) Yearly Distribution by Type (Top-5 + Others)
-        _anchor("sec-da-year-bytype")
+        # C3) Yearly Distribution by Type
         subsection_title("Yearly Counts by Type - Stacked / Grouped (Top-5 + Others)")
         dYT = scoped.dropna(subset=["Year"]).copy()
         if dYT.empty:
@@ -755,7 +686,7 @@ def render():
                     type_order = top_types + (["Others"] if "Others" in ytc_plot[TYPE_COL].unique() else [])
                     ytc_plot[TYPE_COL] = pd.Categorical(ytc_plot[TYPE_COL], categories=type_order, ordered=True)
                     ytc_plot = ytc_plot.sort_values(["Year", TYPE_COL])
-                    story_context("Stacked bars show mix by year; grouped contrasts type magnitudes.")
+                    story_context("Stacked bars display yearly composition; grouped bars compare magnitude between types.")
                     tab_stack, tab_group = st.tabs(["Stacked Bars", "Grouped Bars"])
                     common_orders = {"category_orders": {TYPE_COL: type_order}}
                     with tab_stack:
@@ -795,12 +726,11 @@ def render():
         st.markdown("---")
         section_title("Temporal & Spatial Heat")
         story_context(
-            "This section is for finding ‘busy’ periods or lat/lon zones that are harder hit. "
-            "It helps surface months that repeatedly report higher counts, which is good for preparedness calendars. "
-            "The lat/lon heat also shows whether events cluster in a narrow band or are widely dispersed."
+            "This section surfaces time periods or geographic bands with consistently higher activity. "
+            "Months with repeated peaks are useful for preparedness calendars. "
+            "Latitude/longitude densities indicate whether events cluster within narrow zones or across wider areas."
         )
 
-        _anchor("sec-da-calendar")
         subsection_title("Calendar Heatmap (Year × Month)")
         d6 = scoped.copy()
         type6 = type_sel("cal")
@@ -832,13 +762,12 @@ def render():
         fig_heat.update_layout(coloraxis_colorbar=dict(title="Events"), xaxis_title="Month", yaxis_title="Year")
         _plot(fig_heat, key="da-cal-heat", config=PLOTLY_CFG)
 
-        _anchor("sec-da-xy")
         subsection_title("Lat/Lon Density Heat (Cartesian Grid)")
         d7 = scoped.copy()
         type7 = type_sel("xy")
         if type7 and type7 != "All" and TYPE_COL in d7.columns:
             d7 = d7[d7[TYPE_COL] == type7]
-        story_context("Cartesian density map reveals geographic clustering by latitude/longitude.")
+        story_context("Cartesian density mapping displays geographic clustering by latitude and longitude.")
         d7 = d7.dropna(subset=["Latitude","Longitude"])
         if d7.empty:
             st.info("No geocoded events for the selected filters.")

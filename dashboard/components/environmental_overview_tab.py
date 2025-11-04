@@ -14,10 +14,18 @@ from src.utils.merge_datasets import merge_datasets
 # Theme Helpers
 
 def section_title(text: str):
-    st.markdown(f"<h2 style='color:#59B3A9;'>{text}</h2>", unsafe_allow_html=True)
+    """Main section bar (registered by app.py capture)."""
+    st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
+
 
 def subsection_title(text: str):
-    st.markdown(f"<h4 style='color:#EFB369;'>{text}</h4>", unsafe_allow_html=True)
+    """Smaller subsection bar."""
+    st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
+
+
+def story_context(text: str):
+    """One-line context/caption above a visual."""
+    st.markdown(f'<div class="gv-context">{text}</div>', unsafe_allow_html=True)
 
 def _fmt(dt):
     try:
@@ -106,7 +114,7 @@ def render():
         df_filtered = df_filtered[df_filtered["country"] == selected_country]
 
     # Header
-    section_title("Environmental Overview")
+    section_title("Overview")
     st.markdown(f"""
         This dashboard provides a global overview of natural disasters using NASA EONET data.
         **Showing events from the last {days} days.**

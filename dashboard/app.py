@@ -9,7 +9,6 @@ from contextlib import contextmanager
 
 import streamlit as st
 
-
 # ---------------------------------------------------------------------
 # PATHS / IMPORTS
 # ---------------------------------------------------------------------
@@ -17,12 +16,14 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-# (optional) confirm it's added
-# print("Python path includes:", ROOT)
-
-
-import streamlit as st
-from dashboard.components import home_tab, environmental_overview_tab, impact_tab, disaster_analysis_tab, alerts_tab, trends_tab
+from dashboard.components import (
+    home_tab,
+    environmental_overview_tab,
+    impact_tab,
+    disaster_analysis_tab,
+    alerts_tab,
+    trends_tab,
+)
 from src.utils import style_config
 
 # ----------------------------
@@ -33,7 +34,6 @@ st.set_page_config(
     page_icon="🌍",
     layout="wide"
 )
-from src.utils import style_config
 
 # ---------------------------------------------------------------------
 # PAGE CONFIG + BASE STYLE
@@ -47,13 +47,12 @@ if os.path.exists(css_path):
 else:
     st.warning("assets/style.css not found — styles may not render as designed.")
 
-# Small inline overrides so you don't need to touch assets/style.css:
-# 1) smooth scroll, 2) slightly lighter section boxes, 3) anchors land below banner+menus
+# Small inline overrides — now only smooth scroll + anchor spacing
 st.markdown(
     """
     <style>
       html{ scroll-behavior:smooth; }
-      .gv-section-title{ background:#f9fafb; border:1px solid #ececec; scroll-margin-top:96px; }
+      .gv-section-title{ scroll-margin-top:96px; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -71,41 +70,12 @@ PAGES = {
     "Trends": [],
 }
 ORDER = list(PAGES.keys())
-DEFAULT_PAGE = "Alerts"
+DEFAULT_PAGE = "Home"   # 👈 now Home is the default
 
 # ---------------------------------------------------------------------
-# THEME PICKER (Gray by default)
+# SIDEBAR NAV (no theme picker anymore)
 # ---------------------------------------------------------------------
-THEMES = {
-    "Gray (default)": {"900":"#1f2937","800":"#374151","700":"#4b5563","600":"#6b7280","050":"#f3f4f6"},
-    "Blue": {"900":"#0f3e6b","800":"#134d88","700":"#185aa3","600":"#1b66b9","050":"#eef5fc"},
-    "Red": {"900":"#6b1321","800":"#8a1a2c","700":"#a32236","600":"#c12941","050":"#fdecef"},
-    "Dark": {"900":"#e5e7eb","800":"#d1d5db","700":"#9ca3af","600":"#6b7280","050":"#111827"},
-}
 st.sidebar.header("Navigation")
-theme_name = st.sidebar.selectbox("Theme", list(THEMES.keys()), index=0)
-t = THEMES[theme_name]
-st.markdown(
-    f"""
-    <style>
-      :root {{
-        --brand-900:{t['900']};
-        --brand-800:{t['800']};
-        --brand-700:{t['700']};
-        --brand-600:{t['600']};
-        --brand-050:{t['050']};
-      }}
-      .gv {{
-        --brand-900:{t['900']};
-        --brand-800:{t['800']};
-        --brand-700:{t['700']};
-        --brand-600:{t['600']};
-        --brand-050:{t['050']};
-      }}
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 # ---------------------------------------------------------------------
 # QUERY PARAMS (page only)
@@ -164,13 +134,11 @@ def side_menu_html(active_page: str) -> str:
 
 st.sidebar.markdown(side_menu_html(page), unsafe_allow_html=True)
 
-# Sidebar placeholder for the "Go to section" dropdown (we'll render with components.html)
+# Sidebar placeholder for the "Go to section" dropdown
 _side_subnav_placeholder = st.sidebar.empty()
 
 # ---------------------------------------------------------------------
 # SECTION CAPTURE (no edits to page files)
-# - Intercepts st.markdown while a page renders.
-# - Any .gv-section-title gets an anchor injected and is registered.
 # ---------------------------------------------------------------------
 def _slugify(text: str) -> str:
     txt = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
@@ -196,9 +164,10 @@ def _register_section(current_page: str, label: str) -> str:
 
 @contextmanager
 def capture_sections(current_page: str):
-    """Intercept .gv-section-title outputs to:
-       1) prepend an anchor <div id='sec-...'></div>
-       2) register the section for both dropdowns
+    """
+    Intercept .gv-section-title outputs to:
+     1) prepend an anchor <div id='sec-...'></div>
+     2) register the section for both dropdowns
     """
     _reset_page_sections(current_page)
     original_markdown = st.markdown
@@ -225,16 +194,12 @@ def capture_sections(current_page: str):
 
 # ---------------------------------------------------------------------
 # PAGE / SECTION TITLE HELPERS
-# (Page modules already render their own .gv-section-title — we leave them.)
 # ---------------------------------------------------------------------
 def gv_page_title(text: str):
     st.markdown(f'<div class="gv-page-title">{text}</div>', unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------
 # DROPDOWNS (horizontal under tabs, and sidebar)
-# - Both use #anchor links -> no rerun, just scroll.
-# - Horizontal reuses .gv-menu / .gv-m-link boxes (nav style).
-# - Sidebar uses components.html to avoid HTML escaping and reuses .gv-side-link style.
 # ---------------------------------------------------------------------
 def render_sections_dropdown(current_page: str):
     secs = st.session_state["gv_sections"].get(current_page, [])
@@ -262,13 +227,12 @@ def render_sections_dropdown(current_page: str):
         _subnav_placeholder.markdown(html_dropdown, unsafe_allow_html=True)
 
 def render_sidebar_sections_dropdown(current_page: str):
-    """Sidebar 'Go to section ▾' — renders as real HTML (no iframe), no rerun."""
+    """Sidebar 'Go to section ▾' — renders as real HTML, no rerun."""
     secs = st.session_state["gv_sections"].get(current_page, [])
     _side_subnav_placeholder.empty()
     if not secs:
         return
 
-    # Build items with NO leading spaces so Markdown doesn't turn it into a code block
     items = "".join(
         f'<div class="gv-side-item" style="margin:6px 10px 0 18px;"><a class="gv-side-link" href="#{sid}">{label}</a></div>'
         for label, sid in secs
@@ -284,20 +248,21 @@ def render_sidebar_sections_dropdown(current_page: str):
     )
 
     _side_subnav_placeholder.markdown(sidebar_html, unsafe_allow_html=True)
+
 # ---------------------------------------------------------------------
 # ROUTING
 # ---------------------------------------------------------------------
 def page_home():
-    # Example section (your real pages already output .gv-section-title themselves)
     st.markdown('<div class="gv-section-title">Overview</div>', unsafe_allow_html=True)
     st.write("**GeoVision** aggregates global disaster information for academic analysis and insight.")
 
 # 1) Page title
 gv_page_title(page)
 
+# 2) Render page with section capture
 with capture_sections(page):
     if page == "Home":
-        home_tab.render()  # <- updated to use the new styled home_tab
+        home_tab.render()
     elif page == "Alerts":
         alerts_tab.render()
     elif page == "Environmental Overview":
@@ -308,7 +273,6 @@ with capture_sections(page):
         disaster_analysis_tab.render()
     elif page == "Trends":
         trends_tab.render()
-
 
 # 3) After capture, print dropdown under top tabs + in sidebar
 render_sections_dropdown(page)

@@ -2,11 +2,7 @@
 
 """
 alerts_tab.py
--------------
-GDACS alerts page styled to match the app's enterprise theme:
-- Themed section/subsection bars (gv-section-title / gv-subsection-title)
-- In-page anchors that work with ?page=Alerts&section=...
-- Filters stick on the right as you scroll
+GDACS alerts page styled to match the app's enterprise theme.
 """
 
 import os
@@ -17,71 +13,52 @@ import plotly.express as px
 from plotly import graph_objects as go
 import streamlit as st
 
-# ✅ Ensure `src` folder (which contains `data_pipeline`) is in the Python path
+# ensure src is on path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
 from data_pipeline.fetch_gdacs import fetch_gdacs  # type: ignore
 
 
 # ----------------------------
-# Styling / Palette (consistent across visuals)
+# Styling / palette
 # ----------------------------
 ALERT_COLORS = {
-    "Red":    "#EA6455",  # soft red
-    "Orange": "#EFB369",  # soft orange
-    "Green":  "#59B3A9",  # soft teal
+    "Red":    "#EA6455",
+    "Orange": "#EFB369",
+    "Green":  "#59B3A9",
     "Unknown":"#8A8A8A",
 }
 
-# clear / natural palette (same idea as disaster_analysis_tab)
 PALETTE_NATURAL = [
-    "#3B82F6",  # clear blue
-    "#EF4444",  # clear red
-    "#F97316",  # clear orange
-    "#22C55E",  # clear green
-    "#06B6D4",  # cyan / teal
-    "#6366F1",  # indigo
-    "#EAB308",  # amber
-    "#8B5CF6",  # violet
-    "#14B8A6",  # teal
-    "#F43F5E",  # rose
+    "#3B82F6", "#EF4444", "#F97316", "#22C55E", "#06B6D4",
+    "#6366F1", "#EAB308", "#8B5CF6", "#14B8A6", "#F43F5E",
 ]
 
 
 # ----------------------------
-# Small helpers (titles, anchors, map bounds)
+# Small helpers
 # ----------------------------
 def _fmt(dt):
     try:
         return pd.to_datetime(dt).strftime("%Y-%m-%d")
     except Exception:
-        return "—"
-
-
-def _anchor(id_: str):
-    """Invisible HTML anchor for smooth scrolling targets."""
-    st.markdown(f'<div id="{id_}"></div>', unsafe_allow_html=True)
+        return "-"
 
 
 def section_title(text: str):
-    """Theme-aligned section bar (same visuals as the app)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
 
 def subsection_title(text: str):
-    """Theme-aligned subsection bar."""
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
 
 
 def story_context(text: str):
-    """One-line context/caption above a visual."""
     st.markdown(f'<div class="gv-context">{text}</div>', unsafe_allow_html=True)
 
 
 def _center_zoom_from_points(lat_series: pd.Series, lon_series: pd.Series):
-    """Compute center and zoom for Mapbox from points."""
     lats = pd.to_numeric(lat_series, errors="coerce").dropna()
     lons = pd.to_numeric(lon_series, errors="coerce").dropna()
-
     if len(lats) == 0 or len(lons) == 0:
         return dict(lat=0, lon=0), 1.3
 
@@ -103,56 +80,33 @@ def _center_zoom_from_points(lat_series: pd.Series, lon_series: pd.Series):
     return center, zoom
 
 
+def _halo_rgba_from_level(level_or_hex: str):
+    if level_or_hex.startswith("#"):
+        base = level_or_hex.lstrip("#")
+    else:
+        base = ALERT_COLORS.get(level_or_hex, ALERT_COLORS["Unknown"]).lstrip("#")
+    r = int(base[0:2], 16)
+    g = int(base[2:4], 16)
+    b = int(base[4:6], 16)
+    return f"rgba({r},{g},{b},0.25)"
+
+
 # ----------------------------
 # Main render
 # ----------------------------
 def render():
-    """Render the Alerts tab (styled to match the app)."""
-
-    # Page-level spacing & typography (match disaster page spacing)
-    st.markdown(
-        """
-        <style>
-        .gv-section-title {
-            margin-top: 1.6rem;
-            margin-bottom: 1.4rem;
-        }
-        .gv-subsection-title {
-            margin-top: 1.3rem;
-            margin-bottom: 0.8rem;
-        }
-        .gv-context {
-            font-size: .95rem;
-            color: #3f3f46;
-            margin: 0 0 1rem 0;
-            line-height: 1.4;
-        }
-        [data-testid="stPlotlyChart"] {
-            margin-top: 0.6rem;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    # =========================
-    # OVERVIEW
-    # =========================
-    _anchor("sec-alerts-overview")
+    # intro
     section_title("Overview")
     st.markdown(
-        "This page displays real-time GDACS alerts categorized by severity. "
-        "Use the filters to focus on specific countries or disaster types."
+        "Displays GDACS alerts grouped by severity so operators can quickly see where high impact events are happening."
     )
     st.markdown(
-        "- **Red alerts** indicate severe, large-scale disasters.\n"
-        "- **Orange alerts** signal potential escalation and require monitoring.\n"
-        "- **Green alerts** represent minor events or those with limited impact."
+        "- Red alerts: severe, large scale.\n"
+        "- Orange alerts: watch closely.\n"
+        "- Green alerts: minor or limited impact."
     )
 
-    # =========================
-    # LOAD DATA (live with snapshot fallback)
-    # =========================
+    # load data
     df = pd.DataFrame()
     load_note = ""
     try:
@@ -170,421 +124,524 @@ def render():
             st.warning("No live data and no snapshot available.")
             return
 
-    # =========================================
-    # LAYOUT: MAIN + FILTER COLUMN
-    # =========================================
-    col_main, col_filter_wrapper = st.columns([4, 1], gap="large")
+    # normalize types once
+    disaster_legend = {
+        "EQ": "Earthquake",
+        "FL": "Flood",
+        "TC": "Tropical Cyclone",
+        "DR": "Drought",
+        "VO": "Volcano",
+        "WF": "Wildfire",
+        "LS": "Landslide",
+    }
+    if "Disaster Type" in df.columns:
+        df["Disaster Type"] = df["Disaster Type"].replace(disaster_legend)
 
-    # ---------------- FILTER COLUMN ----------------
-    with col_filter_wrapper:
-        st.markdown(
-            """
-            <style>
-              [data-testid="column"]:nth-of-type(2) > div {
-                  position: sticky;
-                  top: 90px;
-                  align-self: flex-start !important;
-                  z-index: 2;
-              }
-              .sticky-filter {
-                  background-color: rgba(255,255,255,0.85);
-                  padding: 1rem;
-                  border-radius: 10px;
-                  border: 1px solid #ddd;
-                  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-              }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        subsection_title("Filters")
+    # date cols
+    df["_start_dt"] = pd.to_datetime(df.get("Start Date"), errors="coerce", utc=True)
+    df["_end_dt"]   = pd.to_datetime(df.get("End Date"), errors="coerce", utc=True)
+    now_utc = pd.Timestamp.utcnow()
+    today_start = now_utc.normalize()
 
-        # Alert level
-        alert_filter = st.selectbox("Alert Level", ["All", "Red", "Orange", "Green"])
-        if alert_filter == "All":
-            df_alert = df.copy()
-        else:
-            df_alert = df[df["Alert Level"].str.lower() == alert_filter.lower()].copy()
+    # two scopes
+    df_live_base = df[(df["_end_dt"].isna()) | (df["_end_dt"] >= today_start)].copy()
+    df_recent_base = df.copy()
 
-        # Country filter
-        countries_filtered = sorted(df_alert["Country"].dropna().unique().tolist())
-        country_choice = st.selectbox("Country", options=["All countries"] + countries_filtered, index=0)
-        if country_choice == "All countries":
-            filtered_df = df_alert.copy()
-        else:
-            filtered_df = df_alert[df_alert["Country"] == country_choice].copy()
+    # tabs
+    tab_live, tab_recent = st.tabs(["Live alerts", "Recent alerts"])
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # ---------------- MAIN COLUMN ----------------
-    with col_main:
-        # =================================================
-        # SECTION 1: Current Alerts & Locations
-        # =================================================
-        st.markdown("---")
-        _anchor("sec-alerts-current")
-        section_title("Current Alerts & Locations")
+    # =========================================================
+    # TAB 1: LIVE ALERTS
+    # =========================================================
+    with tab_live:
+        st.markdown("")
+        section_title("Current Alerts & Locations (Live)")
         story_context(
-            "Use this section to see where alerts are happening right now, how severe they are, "
-            "and to browse the current GDACS entries in a table."
+            "Shows GDACS alerts that are still active today. Intended for real time monitoring and routing attention to the most critical countries."
         )
 
-        # ----- subsection: map + KPIs -----
-        _anchor("sec-alerts-map")
-        subsection_title("Map of Active & Recent Alerts")
+        col_main, col_filter = st.columns([4, 1], gap="large")
 
-        if ("Latitude" not in filtered_df.columns) or ("Longitude" not in filtered_df.columns):
-            st.markdown("Map view unavailable: latitude/longitude columns not found.")
-        else:
-            map_df = filtered_df.copy()
-            type_lookup = {
-                "EQ": "Earthquake", "FL": "Flood", "TC": "Tropical Cyclone",
-                "DR": "Drought", "VO": "Volcano", "WF": "Wildfire", "LS": "Landslide",
-            }
-            map_df["Type Name"] = (
-                map_df.get("Disaster Type", "Unknown")
-                .map(type_lookup)
-                .fillna(map_df.get("Disaster Type", "Unknown"))
-                .replace("", "Unknown")
+        with col_filter:
+            st.markdown('<div class="gv-filter-card">', unsafe_allow_html=True)
+            subsection_title("Filters")
+
+            alert_options = ["All"] + sorted(
+                df_live_base["Alert Level"].dropna().str.capitalize().unique().tolist()
             )
+            alert_filter = st.selectbox("Alert Level", alert_options, key="live_alert_level")
+            if alert_filter == "All":
+                df_alert = df_live_base.copy()
+            else:
+                df_alert = df_live_base[
+                    df_live_base["Alert Level"].str.lower() == alert_filter.lower()
+                ].copy()
 
-            types_present = sorted(map_df["Type Name"].dropna().unique().tolist())
-            type_choice = st.selectbox("Select disaster type", options=["All"] + types_present, index=0)
-            if type_choice != "All":
-                map_df = map_df[map_df["Type Name"] == type_choice]
-
-            # ---------- KPIs ----------
-            total_alerts = int(len(map_df))
-            lvl_counts = (
-                map_df.get("Alert Level", pd.Series(dtype=str))
-                      .fillna("Unknown").value_counts()
-                      .reindex(["Red", "Orange", "Green", "Unknown"], fill_value=0)
+            countries = sorted(df_alert["Country"].dropna().unique().tolist())
+            country_choice = st.selectbox(
+                "Country",
+                options=["All countries"] + countries,
+                index=0,
+                key="live_country"
             )
-            type_counts = (
-                map_df.get("Type Name", pd.Series(dtype=str))
-                      .fillna("Unknown").value_counts()
-                      .sort_values(ascending=False)
+            if country_choice == "All countries":
+                live_df = df_alert.copy()
+            else:
+                live_df = df_alert[df_alert["Country"] == country_choice].copy()
+
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with col_main:
+            live_df["_start_dt"] = pd.to_datetime(live_df.get("Start Date"), errors="coerce", utc=True)
+            live_df["_end_dt"]   = pd.to_datetime(live_df.get("End Date"), errors="coerce", utc=True)
+            active_df = live_df
+
+            subsection_title("Alerts map")
+            story_context(
+                "Map highlights where active alerts are currently located. Color shows alert level, halo shows intensity zone. Useful to scan geography first."
             )
+            st.markdown("", unsafe_allow_html=True)
 
-            # Parse datetimes and split Active vs Ended
-            map_df["_start_dt"] = pd.to_datetime(map_df.get("Start Date"), errors="coerce", utc=True)
-            map_df["_end_dt"]   = pd.to_datetime(map_df.get("End Date"), errors="coerce", utc=True)
-            now_utc   = pd.Timestamp.utcnow()
-            today_end = now_utc.normalize() + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
-
-            active_df = map_df[(map_df["_end_dt"].isna()) | (map_df["_end_dt"] >= today_end)].copy()
-            ended_df  = map_df[ map_df["_end_dt"].notna() & (map_df["_end_dt"] <  today_end)].copy()
-
-            active_n   = int(len(active_df))
-            active_lvl = (
+            # KPI
+            live_counts = (
                 active_df.get("Alert Level", pd.Series(dtype=str))
                          .fillna("Unknown").value_counts()
-                         .reindex(["Red", "Orange", "Green"], fill_value=0)
+                         .reindex(["Red", "Orange", "Green", "Unknown"], fill_value=0)
             )
-
-            top_type = type_counts.index[0] if not type_counts.empty else "—"
-            story_context(
-                f"Showing {total_alerts:,} alerts; {active_n:,} active as of today — most common type: {top_type}."
-            )
-
             k1, k2, k3, k4 = st.columns(4)
-            with k1: st.metric("Total Alerts", f"{total_alerts:,}")
-            with k2: st.metric("Total Red",    f"{int(lvl_counts['Red']):,}")
-            with k3: st.metric("Total Orange", f"{int(lvl_counts['Orange']):,}")
-            with k4: st.metric("Total Green",  f"{int(lvl_counts['Green']):,}")
+            with k1: st.metric("Live alerts", f"{len(active_df):,}")
+            with k2: st.metric("Red", f"{int(live_counts['Red']):,}")
+            with k3: st.metric("Orange", f"{int(live_counts['Orange']):,}")
+            with k4: st.metric("Green", f"{int(live_counts['Green']):,}")
 
-            k5, k6, k7, k8 = st.columns(4)
-            with k5: st.metric("Active Alerts", f"{active_n:,}")
-            with k6: st.metric("Active Red",    f"{int(active_lvl['Red']):,}")
-            with k7: st.metric("Active Orange", f"{int(active_lvl['Orange']):,}")
-            with k8: st.metric("Active Green",  f"{int(active_lvl['Green']):,}")
+            fig = go.Figure()
+            main_size, ring_size, halo_size = 11, 14, 26
 
-            if not type_counts.empty:
-                chips = " · ".join([f"{name}: {int(cnt)}" for name, cnt in type_counts.items()])
-                st.caption(f"Disaster types in view — {chips}")
-
-            # ---------- MAP ----------
-            if map_df.empty:
-                st.markdown("No live events match the selected filters.")
-            else:
-                event_name = map_df.get("Event Name", "Event").fillna("Event")
-                country    = map_df.get("Country", "—").fillna("—")
-                severity   = map_df.get("Severity", "—").fillna("—")
-
-                map_df["hover"]    = (
-                    "<b>" + event_name + "</b><br>"
-                    + "Type: " + map_df["Type Name"].fillna("Unknown") + "<br>"
-                    + "Alert: " + map_df.get("Alert Level", "Unknown").fillna("Unknown") + "<br>"
-                    + "Country: " + country + "<br>"
-                    + "Start: " + map_df["_start_dt"].map(_fmt) + "<br>"
-                    + "End: "   + map_df["_end_dt"].map(_fmt) + "<br>"
-                    + "Severity: " + severity
+            if active_df.empty:
+                fig.add_trace(go.Scattermapbox(
+                    lat=[0], lon=[0], mode="markers",
+                    marker=dict(size=0),
+                    hoverinfo="skip",
+                    showlegend=False,
+                ))
+                fig.update_layout(
+                    margin=dict(l=0, r=0, t=10, b=0),
+                    height=560,
+                    mapbox=dict(style="carto-positron", center=dict(lat=0, lon=0), zoom=1.1),
+                    annotations=[
+                        dict(
+                            text="No active alerts at the current time",
+                            showarrow=False,
+                            xref="paper",
+                            yref="paper",
+                            x=1.0,
+                            y=0.0,
+                            xanchor="right",
+                            yanchor="bottom",
+                            bgcolor="rgba(255,255,255,0.8)",
+                            bordercolor="#EA6455",
+                            borderwidth=1,
+                            font=dict(size=13),
+                        )
+                    ],
                 )
-                active_df["hover"] = map_df.loc[active_df.index, "hover"]
-                ended_df["hover"]  = map_df.loc[ended_df.index,  "hover"]
-
-                def halo_rgba(hex_color_or_level: str):
-                    if hex_color_or_level.startswith("#"):
-                        base = hex_color_or_level.lstrip("#")
-                    else:
-                        base = ALERT_COLORS.get(hex_color_or_level, ALERT_COLORS["Unknown"]).lstrip("#")
-                    r = int(base[0:2], 16); g = int(base[2:4], 16); b = int(base[4:6], 16)
-                    return f"rgba({r},{g},{b},0.25)"
-
-                fig_map = go.Figure()
-                main_size, ring_size, halo_size = 11, 14, 26
-
-                # ended layer
-                if not ended_df.empty:
-                    gray = ALERT_COLORS.get("Unknown", "#8A8A8A")
-                    fig_map.add_trace(go.Scattermapbox(
-                        lat=ended_df["Latitude"], lon=ended_df["Longitude"], mode="markers",
-                        marker=dict(size=halo_size, color=[halo_rgba(gray)] * len(ended_df), opacity=1.0),
-                        hoverinfo="skip", showlegend=False,
-                    ))
-                    fig_map.add_trace(go.Scattermapbox(
-                        lat=ended_df["Latitude"], lon=ended_df["Longitude"], mode="markers",
-                        marker=dict(size=ring_size, color="white", opacity=0.95, symbol="circle"),
-                        hoverinfo="skip", showlegend=False,
-                    ))
-                    fig_map.add_trace(go.Scattermapbox(
-                        lat=ended_df["Latitude"], lon=ended_df["Longitude"], mode="markers",
-                        marker=dict(size=main_size, color=gray, opacity=0.9, symbol="circle"),
-                        name="Ended",
-                        text=ended_df["hover"], hovertemplate="%{text}<extra></extra>",
-                    ))
-
-                # active layers
+            else:
                 for level in ["Red", "Orange", "Green"]:
-                    if active_df.empty:
+                    lvl_series = active_df.get("Alert Level", pd.Series([""] * len(active_df), index=active_df.index))
+                    mask = (lvl_series.fillna("").astype(str).to_numpy() == level)
+                    if not mask.any():
                         continue
-                    if "Alert Level" in active_df.columns:
-                        lvl_series = active_df["Alert Level"]
-                    else:
-                        lvl_series = pd.Series([""] * len(active_df), index=active_df.index, dtype=object)
-                    mask_values = (lvl_series.fillna("").astype(str).to_numpy() == level)
-                    if not mask_values.any():
-                        continue
-                    sub = active_df.loc[mask_values]
+                    sub = active_df.loc[mask].copy()
                     col = ALERT_COLORS.get(level, ALERT_COLORS["Unknown"])
-                    fig_map.add_trace(go.Scattermapbox(
+
+                    # extra fields for hover
+                    typ = sub.get("Disaster Type", "Unknown").fillna("Unknown")
+                    mag = sub.get("Severity", "-").fillna("-")
+
+                    sub["hover"] = (
+                        "<b>" + sub.get("Event Name", "Event").fillna("Event") + "</b><br>"
+                        + "Type: " + typ + "<br>"
+                        + "Severity: " + mag.astype(str) + "<br>"
+                        + "Alert: " + sub.get("Alert Level", "Unknown").fillna("Unknown") + "<br>"
+                        + "Country: " + sub.get("Country", "-").fillna("-") + "<br>"
+                        + "Start: " + sub["_start_dt"].map(_fmt) + "<br>"
+                        + "End: "   + sub["_end_dt"].map(_fmt)
+                    )
+
+                    # halo
+                    fig.add_trace(go.Scattermapbox(
                         lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
-                        marker=dict(size=halo_size, color=[halo_rgba(level)] * len(sub), opacity=1.0),
+                        marker=dict(size=halo_size, color=[_halo_rgba_from_level(level)] * len(sub), opacity=1.0),
                         hoverinfo="skip", showlegend=False,
                     ))
-                    fig_map.add_trace(go.Scattermapbox(
+                    # ring
+                    fig.add_trace(go.Scattermapbox(
                         lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
                         marker=dict(size=ring_size, color="white", opacity=0.95, symbol="circle"),
                         hoverinfo="skip", showlegend=False,
                     ))
-                    fig_map.add_trace(go.Scattermapbox(
+                    # main
+                    fig.add_trace(go.Scattermapbox(
                         lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
                         marker=dict(size=main_size, color=col, opacity=0.95, symbol="circle"),
                         name=level,
                         text=sub["hover"], hovertemplate="%{text}<extra></extra>",
                     ))
 
-                center, zoom = _center_zoom_from_points(map_df["Latitude"], map_df["Longitude"])
-                fig_map.update_layout(
+                center, zoom = _center_zoom_from_points(active_df["Latitude"], active_df["Longitude"])
+                fig.update_layout(
                     margin=dict(l=0, r=0, t=10, b=0),
                     height=560,
                     hoverlabel=dict(font_size=16),
-                    legend_title_text="Status / Level",
-                    uirevision=True,
+                    legend_title_text="Alert Level",
                     mapbox=dict(style="carto-positron", center=center, zoom=zoom),
                 )
 
-                st.caption(
-                    "Ended events are shown in gray until midnight (UTC), then disappear. "
-                    "Zoom with your mouse/trackpad; halos indicate epicenter area."
-                )
-                st.plotly_chart(
-                    fig_map, use_container_width=True,
-                    config={"scrollZoom": True, "displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]},
-                )
+            st.plotly_chart(
+                fig,
+                use_container_width=True,
+                config={"scrollZoom": True, "displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]},
+            )
 
-        # ----- subsection: table -----
-        st.markdown("---")
-        _anchor("sec-alerts-table")
-        subsection_title("List of Live Disasters")
-        story_context("Tabular view of the filtered alerts; use it to click through to the original GDACS entry.")
+            # table
+            subsection_title("List of live alerts")
+            story_context("Tabular view of the same active alerts for quick sorting and linking to GDACS.")
+            if active_df.empty:
+                st.info("No active alerts at the current time.")
+            else:
+                display_live = active_df[[
+                    "Event Name", "Country", "Disaster Type", "Alert Level",
+                    "Start Date", "End Date", "Alert Score", "url"
+                ]].reset_index(drop=True)
+                display_live.index += 1
+                display_live.index.name = "#"
+                st.dataframe(display_live, use_container_width=True)
 
-        disaster_legend = {
-            "EQ": "Earthquake", "FL": "Flood", "TC": "Tropical Cyclone",
-            "DR": "Drought", "VO": "Volcano", "WF": "Wildfire", "LS": "Landslide"
-        }
-        table_df = filtered_df.copy()
-        if "Disaster Type" in table_df.columns:
-            table_df["Disaster Type"] = table_df["Disaster Type"].replace(disaster_legend)
-
-        display_df = table_df[[
-            "Event Name", "Country", "Disaster Type", "Alert Level",
-            "Start Date", "End Date", "Alert Score", "url"
-        ]].reset_index(drop=True)
-        display_df.index += 1
-        display_df.index.name = "#"
-        st.dataframe(display_df)
-
-        # =================================================
-        # SECTION 2: Alert Analytics
-        # =================================================
-        st.markdown("---")
-        _anchor("sec-alerts-charts")
-        section_title("Alert Analytics")
+    # =========================================================
+    # TAB 2: RECENT ALERTS
+    # =========================================================
+    with tab_recent:
+        st.markdown("")
+        section_title("Current Alerts & Locations (Recent)")
         story_context(
-            "Charts below help you understand what is dominating the alert stream right now — "
-            "by country, by hazard, and by day in the last month."
+            "Shows the latest GDACS alerts after filters. Keeps ended alerts in their original color so recent severe events remain visible."
         )
 
-        # =========================
-        # DISTRIBUTION
-        # =========================
-        _anchor("sec-alerts-distribution")
-        subsection_title("Alert Score Distribution")
-        top_type_dist = (
-            table_df.get("Disaster Type", pd.Series(dtype=str))
-                    .fillna("Unknown").value_counts().idxmax()
-            if not table_df.empty else "—"
+        col_main, col_filter = st.columns([4, 1], gap="large")
+
+        with col_filter:
+            st.markdown('<div class="gv-filter-card">', unsafe_allow_html=True)
+            subsection_title("Filters")
+
+            alert_options = ["All"] + sorted(
+                df_recent_base["Alert Level"].dropna().str.capitalize().unique().tolist()
+            )
+            alert_filter = st.selectbox("Alert Level", alert_options, key="recent_alert_level")
+            if alert_filter == "All":
+                df_alert = df_recent_base.copy()
+            else:
+                df_alert = df_recent_base[
+                    df_recent_base["Alert Level"].str.lower() == alert_filter.lower()
+                ].copy()
+
+            countries = sorted(df_alert["Country"].dropna().unique().tolist())
+            country_choice = st.selectbox(
+                "Country",
+                options=["All countries"] + countries,
+                index=0,
+                key="recent_country"
+            )
+            if country_choice == "All countries":
+                recent_df = df_alert.copy()
+            else:
+                recent_df = df_alert[df_alert["Country"] == country_choice].copy()
+
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with col_main:
+            recent_df["_start_dt"] = pd.to_datetime(recent_df.get("Start Date"), errors="coerce", utc=True)
+            recent_df["_end_dt"]   = pd.to_datetime(recent_df.get("End Date"), errors="coerce", utc=True)
+            active_recent = recent_df[(recent_df["_end_dt"].isna()) | (recent_df["_end_dt"] >= today_start)].copy()
+            ended_recent  = recent_df[recent_df["_end_dt"].notna() & (recent_df["_end_dt"] < today_start)].copy()
+
+            subsection_title("Alerts map")
+            story_context(
+                "Map shows all recent alerts for the selected filters. Active events are layered on top. Useful for short term review and debriefs."
+            )
+            st.markdown("", unsafe_allow_html=True)
+
+            # KPI
+            rec_counts = (
+                recent_df.get("Alert Level", pd.Series(dtype=str))
+                         .fillna("Unknown").str.capitalize().value_counts()
+                         .reindex(["Red", "Orange", "Green", "Unknown"], fill_value=0)
+            )
+            r1, r2, r3, r4 = st.columns(4)
+            with r1: st.metric("Recent alerts", f"{len(recent_df):,}")
+            with r2: st.metric("Red", f"{int(rec_counts['Red']):,}")
+            with r3: st.metric("Orange", f"{int(rec_counts['Orange']):,}")
+            with r4: st.metric("Green", f"{int(rec_counts['Green']):,}")
+
+            fig_r = go.Figure()
+            main_size, ring_size, halo_size = 11, 14, 26
+            shown_levels = set()
+
+            # ended first
+            for level in ["Red", "Orange", "Green", "Unknown"]:
+                sub = ended_recent[ended_recent["Alert Level"].fillna("Unknown").str.capitalize() == level]
+                if sub.empty:
+                    continue
+                col = ALERT_COLORS.get(level, ALERT_COLORS["Unknown"])
+
+                # extra fields
+                typ = sub.get("Disaster Type", "Unknown").fillna("Unknown")
+                mag = sub.get("Severity", "-").fillna("-")
+
+                fig_r.add_trace(go.Scattermapbox(
+                    lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                    marker=dict(size=halo_size, color=[_halo_rgba_from_level(level)] * len(sub), opacity=1.0),
+                    hoverinfo="skip", showlegend=False,
+                ))
+                fig_r.add_trace(go.Scattermapbox(
+                    lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                    marker=dict(size=ring_size, color="white", opacity=0.95, symbol="circle"),
+                    hoverinfo="skip", showlegend=False,
+                ))
+                sub["hover"] = (
+                    "<b>" + sub.get("Event Name", "Event").fillna("Event") + "</b><br>"
+                    + "Type: " + typ + "<br>"
+                    + "Severity: " + mag.astype(str) + "<br>"
+                    + "Alert: " + sub.get("Alert Level", "Unknown").fillna("Unknown") + "<br>"
+                    + "Country: " + sub.get("Country", "-").fillna("-") + "<br>"
+                    + "Start: " + sub["_start_dt"].map(_fmt) + "<br>"
+                    + "End: "   + sub["_end_dt"].map(_fmt)
+                )
+                fig_r.add_trace(go.Scattermapbox(
+                    lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                    marker=dict(size=main_size, color=col, opacity=0.9, symbol="circle"),
+                    name=level,
+                    showlegend=(level not in shown_levels),
+                    text=sub["hover"], hovertemplate="%{text}<extra></extra>",
+                ))
+                shown_levels.add(level)
+
+            # active on top
+            for level in ["Red", "Orange", "Green"]:
+                sub = active_recent[active_recent["Alert Level"].fillna("").str.capitalize() == level]
+                if sub.empty:
+                    continue
+                col = ALERT_COLORS.get(level, ALERT_COLORS["Unknown"])
+
+                typ = sub.get("Disaster Type", "Unknown").fillna("Unknown")
+                mag = sub.get("Severity", "-").fillna("-")
+
+                fig_r.add_trace(go.Scattermapbox(
+                    lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                    marker=dict(size=halo_size, color=[_halo_rgba_from_level(level)] * len(sub), opacity=1.0),
+                    hoverinfo="skip", showlegend=False,
+                ))
+                fig_r.add_trace(go.Scattermapbox(
+                    lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                    marker=dict(size=ring_size, color="white", opacity=0.95, symbol="circle"),
+                    hoverinfo="skip", showlegend=False,
+                ))
+                sub["hover"] = (
+                    "<b>" + sub.get("Event Name", "Event").fillna("Event") + "</b><br>"
+                    + "Type: " + typ + "<br>"
+                    + "Severity: " + mag.astype(str) + "<br>"
+                    + "Alert: " + sub.get("Alert Level", "Unknown").fillna("Unknown") + "<br>"
+                    + "Country: " + sub.get("Country", "-").fillna("-") + "<br>"
+                    + "Start: " + sub["_start_dt"].map(_fmt) + "<br>"
+                    + "End: "   + sub["_end_dt"].map(_fmt)
+                )
+                fig_r.add_trace(go.Scattermapbox(
+                    lat=sub["Latitude"], lon=sub["Longitude"], mode="markers",
+                    marker=dict(size=main_size, color=col, opacity=0.95, symbol="circle"),
+                    name=level,
+                    showlegend=(level not in shown_levels),
+                    text=sub["hover"], hovertemplate="%{text}<extra></extra>",
+                ))
+                shown_levels.add(level)
+
+            if recent_df.empty:
+                center, zoom = (dict(lat=0, lon=0), 1.1)
+            else:
+                center, zoom = _center_zoom_from_points(recent_df["Latitude"], recent_df["Longitude"])
+
+            fig_r.update_layout(
+                margin=dict(l=0, r=0, t=10, b=0),
+                height=560,
+                hoverlabel=dict(font_size=16),
+                legend_title_text="Alert Level",
+                mapbox=dict(style="carto-positron", center=center, zoom=zoom),
+            )
+
+            st.plotly_chart(
+                fig_r,
+                use_container_width=True,
+                config={"scrollZoom": True, "displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]},
+            )
+
+            # table
+            subsection_title("List of recent alerts")
+            story_context("Recent GDACS records after filters. Use to inspect attributes and click through to source.")
+            if recent_df.empty:
+                st.info("No recent alerts to list for the selected filters.")
+            else:
+                display_recent = recent_df[[
+                    "Event Name", "Country", "Disaster Type", "Alert Level",
+                    "Start Date", "End Date", "Alert Score", "url"
+                ]].reset_index(drop=True)
+                display_recent.index += 1
+                display_recent.index.name = "#"
+                st.dataframe(display_recent, use_container_width=True)
+
+    # =================================================
+    # SECTION 2: Recent Alert Statistics
+    # =================================================
+    st.markdown("")
+    section_title("Recent Alert Statistics")
+    story_context(
+        "Summaries used to understand which hazards and locations have been most active in the latest GDACS pull."
+    )
+
+    table_df = df.copy()
+
+    subsection_title("Alert Score Distribution")
+    top_type_dist = (
+        table_df.get("Disaster Type", pd.Series(dtype=str))
+                .fillna("Unknown").value_counts().idxmax()
+        if not table_df.empty else "-"
+    )
+    story_context(
+        f"Shows which hazard types contributed the largest alert scores in the current dataset. Highest right now: {top_type_dist}."
+    )
+
+    def _compact_country_label(s: str) -> str:
+        if not isinstance(s, str) or not s.strip():
+            return "-"
+        parts = [p.strip() for p in s.split(",") if p.strip()]
+        if len(parts) <= 2:
+            return ", ".join(parts)
+        return ", ".join(parts[:2]) + " …"
+
+    viz_df = table_df.copy()
+    viz_df["Country Label"] = viz_df["Country"].apply(_compact_country_label)
+
+    tabs = st.tabs(["Bar Chart", "Pie Chart"])
+    with tabs[0]:
+        fig_bar = px.bar(
+            viz_df,
+            x="Alert Score",
+            y="Country Label",
+            color=viz_df.get("Disaster Type", "Type"),
+            orientation="h",
+            text="Alert Score",
+            color_discrete_sequence=PALETTE_NATURAL,
         )
-        story_context(f"Quick view of which hazards are generating the highest alert scores — top: {top_type_dist}.")
+        fig_bar.update_layout(
+            yaxis={'categoryorder': 'total ascending'},
+            bargap=0.25,
+            legend_title_text="Disaster Type"
+        )
+        fig_bar.update_traces(
+            texttemplate="%{text}",
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate="<b>%{y}</b><br>Type: %{legendgroup}<br>Score: %{x}<extra></extra>",
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
 
-        def _compact_country_label(s: str) -> str:
-            if not isinstance(s, str) or not s.strip():
-                return "—"
-            parts = [p.strip() for p in s.split(",") if p.strip()]
-            if len(parts) <= 2:
-                return ", ".join(parts)
-            return ", ".join(parts[:2]) + " …"
+    with tabs[1]:
+        fig_pie = px.pie(
+            viz_df,
+            names="Disaster Type",
+            color_discrete_sequence=PALETTE_NATURAL
+        )
+        fig_pie.update_traces(textposition="inside", textinfo="percent+label")
+        st.plotly_chart(fig_pie, use_container_width=True)
 
-        viz_df = table_df.copy()
-        viz_df["Country Label"] = viz_df["Country"].apply(_compact_country_label)
+    subsection_title("Active Alerts Over Time (Last 30 Days)")
+    story_context(
+        "Daily counts make it easier to see if the last days were busier or calmer than usual in this data slice."
+    )
 
-        tabs = st.tabs(["Bar Chart", "Pie Chart"])
+    ts_df = table_df.copy()
+    ts_df["Start Date"] = pd.to_datetime(ts_df.get("Start Date"), errors="coerce", utc=True)
+    ts_df["End Date"]   = pd.to_datetime(ts_df.get("End Date"), errors="coerce", utc=True)
+    end_window = pd.Timestamp.utcnow().normalize()
+    start_window = end_window - pd.Timedelta(days=29)
 
-        with tabs[0]:
-            fig_bar = px.bar(
-                viz_df,
-                x="Alert Score",
-                y="Country Label",
-                color=viz_df.get("Disaster Type", "Type"),
-                orientation="h",
-                text="Alert Score",
-                color_discrete_sequence=PALETTE_NATURAL,
+    ts_df["End Date"] = ts_df["End Date"].fillna(end_window + pd.Timedelta(days=1) - pd.Timedelta(seconds=1))
+    mask = (ts_df["Start Date"] <= end_window) & (ts_df["End Date"] >= start_window)
+    ts_df = ts_df[mask].copy()
+
+    if ts_df.empty:
+        st.markdown("No alerts intersect the last 30 days.")
+    else:
+        def build_active_timeline(frame: pd.DataFrame, group_col: str) -> pd.DataFrame:
+            deltas = []
+            frame["S"] = frame["Start Date"].clip(lower=start_window, upper=end_window).dt.normalize()
+            frame["E"] = frame["End Date"].clip(lower=start_window, upper=end_window).dt.normalize()
+
+            for gval, sub in frame.groupby(group_col, dropna=False):
+                if sub.empty:
+                    continue
+                deltas.append(pd.DataFrame({"Date": sub["S"], "Group": gval, "Delta": 1}))
+                deltas.append(pd.DataFrame({"Date": sub["E"] + pd.Timedelta(days=1), "Group": gval, "Delta": -1}))
+
+            if not deltas:
+                return pd.DataFrame(columns=["Date", "Active", group_col])
+
+            delta_df = pd.concat(deltas, ignore_index=True)
+            full_idx = pd.date_range(start_window, end_window + pd.Timedelta(days=1), freq="D")
+
+            curves = []
+            for gval, sub in delta_df.groupby("Group", dropna=False):
+                series = sub.groupby("Date")["Delta"].sum().reindex(full_idx, fill_value=0).cumsum()
+                series = series.iloc[:-1]
+                curves.append(pd.DataFrame({
+                    "Date": series.index.date,
+                    "Active": series.values,
+                    group_col: gval if pd.notna(gval) else "Unknown"
+                }))
+
+            out = pd.concat(curves, ignore_index=True) if curves else pd.DataFrame(
+                columns=["Date", "Active", group_col]
             )
-            fig_bar.update_layout(
-                yaxis={'categoryorder': 'total ascending'},
-                bargap=0.25,
-                legend_title_text="Disaster Type"
-            )
-            fig_bar.update_traces(
-                texttemplate="%{text}",
-                textposition="outside",
-                cliponaxis=False,
-                hovertemplate="<b>%{y}</b><br>Type: %{legendgroup}<br>Score: %{x}<extra></extra>",
-            )
-            st.plotly_chart(fig_bar, use_container_width=True)
+            return out[(out["Date"] >= start_window.date()) & (out["Date"] <= end_window.date())]
 
-        with tabs[1]:
-            fig_pie = px.pie(
-                viz_df,
-                names="Disaster Type",
-                color_discrete_sequence=PALETTE_NATURAL
-            )
-            fig_pie.update_traces(textposition="inside", textinfo="percent+label")
-            st.plotly_chart(fig_pie, use_container_width=True)
+        t1, t2 = st.tabs(["By Alert Level", "By Disaster Type"])
 
-        # =========================
-        # TIME SERIES (Last 30 Days)
-        # =========================
-        st.markdown("---")
-        _anchor("sec-alerts-timeseries")
-        subsection_title("Active Alerts Over Time (Last 30 Days)")
-        story_context("Daily active counts for the last month — useful to spot bursts or calm periods.")
+        with t1:
+            lvl_tl = build_active_timeline(ts_df, "Alert Level")
+            if lvl_tl.empty:
+                st.markdown("No Red, Orange or Green alerts to plot.")
+            else:
+                fig_lvl = px.line(
+                    lvl_tl, x="Date", y="Active", color="Alert Level",
+                    markers=True, color_discrete_map=ALERT_COLORS,
+                )
+                fig_lvl.update_layout(
+                    xaxis_title="Date", yaxis_title="Number of Active Alerts",
+                    legend_title="Alert Level", hovermode="x unified"
+                )
+                st.plotly_chart(fig_lvl, use_container_width=True)
 
-        ts_df = table_df.copy()
-        ts_df["Start Date"] = pd.to_datetime(ts_df.get("Start Date"), errors="coerce", utc=True)
-        ts_df["End Date"]   = pd.to_datetime(ts_df.get("End Date"), errors="coerce", utc=True)
+        with t2:
+            type_tl = build_active_timeline(ts_df, "Disaster Type")
+            if type_tl.empty:
+                st.markdown("No disasters to plot.")
+            else:
+                fig_type = px.line(
+                    type_tl, x="Date", y="Active", color="Disaster Type",
+                    markers=True, color_discrete_sequence=PALETTE_NATURAL,
+                )
+                fig_type.update_layout(
+                    xaxis_title="Date", yaxis_title="Number of Active Alerts",
+                    legend_title="Disaster Type", hovermode="x unified"
+                )
+                st.plotly_chart(fig_type, use_container_width=True)
 
-        end_window = pd.Timestamp.utcnow().normalize()
-        start_window = end_window - pd.Timedelta(days=29)
-
-        ts_df["End Date"] = ts_df["End Date"].fillna(end_window + pd.Timedelta(days=1) - pd.Timedelta(seconds=1))
-        mask = (ts_df["Start Date"] <= end_window) & (ts_df["End Date"] >= start_window)
-        ts_df = ts_df[mask].copy()
-
-        if ts_df.empty:
-            st.markdown("No alerts intersect the last 30 days for the current filters.")
-        else:
-            def build_active_timeline(frame: pd.DataFrame, group_col: str) -> pd.DataFrame:
-                deltas = []
-                frame["S"] = frame["Start Date"].clip(lower=start_window, upper=end_window).dt.normalize()
-                frame["E"] = frame["End Date"].clip(lower=start_window, upper=end_window).dt.normalize()
-
-                for gval, sub in frame.groupby(group_col, dropna=False):
-                    if sub.empty:
-                        continue
-                    deltas.append(pd.DataFrame({"Date": sub["S"], "Group": gval, "Delta": 1}))
-                    deltas.append(
-                        pd.DataFrame({"Date": sub["E"] + pd.Timedelta(days=1), "Group": gval, "Delta": -1}))
-
-                if not deltas:
-                    return pd.DataFrame(columns=["Date", "Active", group_col])
-
-                delta_df = pd.concat(deltas, ignore_index=True)
-                full_idx = pd.date_range(start_window, end_window + pd.Timedelta(days=1), freq="D")
-
-                curves = []
-                for gval, sub in delta_df.groupby("Group", dropna=False):
-                    series = sub.groupby("Date")["Delta"].sum().reindex(full_idx, fill_value=0).cumsum()
-                    series = series.iloc[:-1]
-                    curves.append(pd.DataFrame({
-                        "Date": series.index.date,
-                        "Active": series.values,
-                        group_col: gval if pd.notna(gval) else "Unknown"
-                    }))
-
-                out = pd.concat(curves, ignore_index=True) if curves else pd.DataFrame(
-                    columns=["Date", "Active", group_col])
-                return out[(out["Date"] >= start_window.date()) & (out["Date"] <= end_window.date())]
-
-            tab1, tab2 = st.tabs(["By Alert Level", "By Disaster Type"])
-
-            # keep old R/O/G colors
-            with tab1:
-                lvl_tl = build_active_timeline(ts_df, "Alert Level")
-                if lvl_tl.empty:
-                    st.markdown("No Red/Orange/Green alerts to plot for the last 30 days.")
-                else:
-                    fig_lvl = px.line(
-                        lvl_tl, x="Date", y="Active", color="Alert Level",
-                        markers=True, color_discrete_map=ALERT_COLORS,
-                    )
-                    fig_lvl.update_layout(
-                        title="Active Alerts by Alert Level (Daily)",
-                        xaxis_title="Date", yaxis_title="Number of Active Alerts",
-                        legend_title="Alert Level", hovermode="x unified"
-                    )
-                    fig_lvl.update_traces(hovertemplate="<b>%{x}</b><br>%{fullData.name}: %{y}<extra></extra>")
-                    st.plotly_chart(fig_lvl, use_container_width=True)
-
-            # disaster-type line chart now uses clear palette
-            with tab2:
-                type_tl = build_active_timeline(ts_df, "Disaster Type")
-                if type_tl.empty:
-                    st.markdown("No disasters to plot for the last 30 days.")
-                else:
-                    fig_type = px.line(
-                        type_tl, x="Date", y="Active", color="Disaster Type",
-                        markers=True, color_discrete_sequence=PALETTE_NATURAL,
-                    )
-                    fig_type.update_layout(
-                        title="Active Alerts by Disaster Type (Daily)",
-                        xaxis_title="Date", yaxis_title="Number of Active Alerts",
-                        legend_title="Disaster Type", hovermode="x unified"
-                    )
-                    fig_type.update_traces(hovertemplate="<b>%{x}</b><br>%{fullData.name}: %{y}<extra></extra>")
-                    st.plotly_chart(fig_type, use_container_width=True)
-
-        # ---- FOOTER ----
-        st.markdown("---")
-        st.caption("Source: Global Disaster Alert and Coordination System")
+    st.markdown("")
+    st.caption("Source: Global Disaster Alert and Coordination System")
