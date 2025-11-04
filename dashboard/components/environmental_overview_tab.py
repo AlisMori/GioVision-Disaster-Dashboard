@@ -2,14 +2,15 @@ import math
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # keep this for consistency
 import reverse_geocoder as rg
 import pycountry
 from datetime import datetime
 
 from src.data_pipeline.data.fetch_eonet_data import fetch_eonet_data
+from src.utils.merge_datasets import merge_datasets
 
-# ===========================
+# ==========================
 # Theme Helpers
 # ===========================
 def section_title(text: str):

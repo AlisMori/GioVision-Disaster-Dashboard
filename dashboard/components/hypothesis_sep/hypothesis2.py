@@ -35,7 +35,7 @@ def _read_csv_first_match(paths):
 
 def render():
     _anchor("sec-h2-overview")
-    section_title("Hypothesis 2")
+    section_title("Climate Shit")
 
     st.markdown(
         "> Since the 2000s, there has been an **increase in the frequency of severe weather-related events** "
