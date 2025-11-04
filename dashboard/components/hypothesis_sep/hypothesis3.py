@@ -56,7 +56,7 @@ def render():
     color_map = {"Flood": "#5DADE2", "Earthquake": "#E74C3C"}
 
     # Event Frequency
-    st.subheader("Event Frequency Comparison")
+    subsection_title("Event Frequency Comparison")
     st.write(
         "Floods appear far more frequently than earthquakes in the EM-DAT records from 2010 to 2025. "
         "This confirms the first part of the hypothesis — floods are more common."
@@ -82,7 +82,7 @@ def render():
     st.plotly_chart(fig_freq, use_container_width=True)
 
     # Average Impact per Event
-    st.subheader("Average Human Impact per Event")
+    subsection_title("Average Human Impact per Event")
     st.write(
         "Average per-event impact shows that earthquakes cause dramatically higher casualties and damage per incident. "
         "Each bar represents the mean value across all events from 2010 to 2025."
@@ -121,7 +121,7 @@ def render():
     )
 
     # Quantitative Summary (visual insight cards)
-    st.subheader("Insight Summary")
+    subsection_title("Insight Summary")
 
     # Calculate ratios
     death_ratio = avg_eq_deaths / avg_flood_deaths
@@ -168,5 +168,4 @@ def render():
     )
 
     st.markdown("---")
-    subsection_title("Data Source")
-    st.caption("EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")
+    st.caption("Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")

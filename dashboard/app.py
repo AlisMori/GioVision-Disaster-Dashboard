@@ -40,12 +40,17 @@ st.set_page_config(
 # ---------------------------------------------------------------------
 style_config.apply_streamlit_style()
 
-css_path = os.path.join("assets", "style.css")
+# Find absolute path of the folder where this file lives
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Adjust to reach the shared assets folder
+css_path = os.path.join(BASE_DIR, "assets", "style.css")
+
 if os.path.exists(css_path):
     with open(css_path) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 else:
-    st.warning("assets/style.css not found — styles may not render as designed.")
+    st.warning(f"CSS file not found at {css_path}")
 
 # Small inline overrides — now only smooth scroll + anchor spacing
 st.markdown(

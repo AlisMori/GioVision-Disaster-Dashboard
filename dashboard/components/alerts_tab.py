@@ -159,10 +159,6 @@ def render():
     # =========================================================
     with tab_live:
         st.markdown("")
-        subsection_title("Live alert map and list")
-        story_context(
-            "Shows GDACS alerts that are still active today. Intended for real time monitoring and routing attention to the most critical countries."
-        )
 
         col_main, col_filter = st.columns([4, 1], gap="large")
 
@@ -326,10 +322,6 @@ def render():
     # =========================================================
     with tab_recent:
         st.markdown("")
-        subsection_title("Recent alert map and list")
-        story_context(
-            "Shows the latest GDACS alerts after filters. Keeps ended alerts in their original color so recent severe events remain visible."
-        )
 
         col_main, col_filter = st.columns([4, 1], gap="large")
 
