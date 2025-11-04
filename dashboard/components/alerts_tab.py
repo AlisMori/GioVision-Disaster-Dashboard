@@ -147,6 +147,10 @@ def render():
     df_live_base = df[(df["_end_dt"].isna()) | (df["_end_dt"] >= today_start)].copy()
     df_recent_base = df.copy()
 
+    # 🔹 common section ABOVE tabs
+    section_title("Current Alerts & Locations")
+    story_context("Switch between live GDACS alerts and the latest recent alerts for short-term review.")
+
     # tabs
     tab_live, tab_recent = st.tabs(["Live alerts", "Recent alerts"])
 
@@ -155,7 +159,7 @@ def render():
     # =========================================================
     with tab_live:
         st.markdown("")
-        section_title("Current Alerts & Locations (Live)")
+        subsection_title("Live alert map and list")
         story_context(
             "Shows GDACS alerts that are still active today. Intended for real time monitoring and routing attention to the most critical countries."
         )
@@ -322,7 +326,7 @@ def render():
     # =========================================================
     with tab_recent:
         st.markdown("")
-        section_title("Current Alerts & Locations (Recent)")
+        subsection_title("Recent alert map and list")
         story_context(
             "Shows the latest GDACS alerts after filters. Keeps ended alerts in their original color so recent severe events remain visible."
         )

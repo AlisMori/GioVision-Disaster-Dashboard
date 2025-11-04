@@ -245,17 +245,22 @@ def _clamp_years(val, lo, hi):
 
 
 def _filters_changed():
-    st.session_state["glob_years"]   = st.session_state.get("years_slider")
-    st.session_state["glob_region"]  = st.session_state.get("region_select", "All Regions")
+    # just sync values into global session state
+    st.session_state["glob_years"] = st.session_state.get("years_slider")
+    st.session_state["glob_region"] = st.session_state.get("region_select", "All Regions")
     st.session_state["glob_country"] = st.session_state.get("country_select", "Global")
-    st.rerun()
+    # no st.rerun() here
 
 
 def _region_changed():
+    # when region changes, reset country to Global and keep years
     st.session_state["glob_region"] = st.session_state.get("region_select", "All Regions")
     st.session_state["glob_country"] = "Global"
-    st.session_state["glob_years"] = st.session_state.get("years_slider", st.session_state.get("glob_years"))
-    st.rerun()
+    st.session_state["glob_years"] = st.session_state.get(
+        "years_slider",
+        st.session_state.get("glob_years"),
+    )
+    # no st.rerun() here
 
 
 # =========================
@@ -612,6 +617,7 @@ def render():
             color_map["Others"] = OTHERS_COLOR
             fig_area = px.area(area, x="YearMonth_dt", y="Count", color="Type_6", color_discrete_map=color_map)
             fig_area.update_traces(line=dict(width=0))
+            fig_area.update_traces(opacity=0.7)
             fig_area.update_traces(hovertemplate="<b>%{x|%Y-%m}</b><br>%{fullData.name}: %{y:,}<extra></extra>")
             fig_area.update_layout(xaxis_title="Date", yaxis_title="Events", legend_title="Type", hovermode="x unified")
             _plot(fig_area, key="da-area", config=PLOTLY_CFG)

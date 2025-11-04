@@ -275,8 +275,10 @@ with capture_sections(page):
         trends_tab.render()
 
 # 3) After capture, print dropdown under top tabs + in sidebar
-render_sections_dropdown(page)
-render_sidebar_sections_dropdown(page)
+# 👉 hide "Go to section" on Trends page
+if page != "Trends":
+    render_sections_dropdown(page)
+    render_sidebar_sections_dropdown(page)
 
 # ---------------------------------------------------------------------
 # FOOTER
