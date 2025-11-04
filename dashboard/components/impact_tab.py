@@ -76,30 +76,6 @@ def render():
     It offers both global insights and detailed country-level perspectives to better understand disaster effects and resilience patterns.
     """)
 
-    # Sticky filters
-    st.markdown(
-        """
-        <style>
-          [data-testid="column"]:has(.impact-filter-marker) > div {
-              position: sticky;
-              top: 90px;
-              width: 130%;
-              align-self: flex-start !important;
-              background-color: rgba(255,255,255,0.8);
-              padding: 1rem;
-              border-radius: 10px;
-              border: 1px solid #ddd;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-          }
-
-          .impact-filter-marker {
-              display: none;
-          }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     df = load_emdat_data()
 
     # Layout
@@ -107,8 +83,8 @@ def render():
 
     # ---------------- Filters ----------------
     with col_filter:
+        st.markdown('<div class="gv-filter-card">', unsafe_allow_html=True)
         subsection_title("Filters")
-        st.markdown('<div class="impact-filter-marker"></div>', unsafe_allow_html=True)
 
         years = sorted(df["Start Year"].unique())
         selected_years = st.slider("Select Year Range", int(min(years)), int(max(years)),

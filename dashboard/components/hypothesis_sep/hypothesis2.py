@@ -13,12 +13,13 @@ def _anchor(id_: str):
 
 
 def section_title(text: str):
+    """Main section bar (registered by app.py capture)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
 
 def subsection_title(text: str):
+    """Smaller subsection bar."""
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
-
 
 # ===========================
 # CONFIG
@@ -54,7 +55,7 @@ def render():
     yearly = df.groupby("Start Year").size().reset_index(name="Total Events")
 
     # Total events trend
-    st.subheader("Total Severe Weather Events per Year")
+    subsection_title("Total Severe Weather Events per Year")
     st.write(
         "This chart shows how the total number of severe weather events fluctuated between 2010 and 2025. "
         "While individual years vary significantly, the overall tendency appears slightly upward after 2018, "
@@ -84,7 +85,7 @@ def render():
     st.plotly_chart(fig, use_container_width=True)
 
     # Decadal comparison
-    st.subheader("Comparison Between Early and Recent Decade")
+    subsection_title("Comparison Between Early and Recent Decade")
     st.write(
         "This bar chart compares the average annual number of events during 2010–2017 versus 2018–2025. "
         "Both periods cover eight years, allowing a balanced comparison. "
@@ -119,7 +120,7 @@ def render():
     st.plotly_chart(fig_bar, use_container_width=True)
 
     # Trend by disaster type
-    st.subheader("Trend in Severe Weather Events by Disaster Type")
+    subsection_title("Trend in Severe Weather Events by Disaster Type")
     st.write(
         "Here each line represents a specific disaster type. Floods and storms dominate the count "
         "and display more noticeable increases compared with other categories, indicating they are the key drivers "
@@ -144,7 +145,7 @@ def render():
     st.plotly_chart(fig_type, use_container_width=True)
 
     # Percentage change by disaster type
-    st.subheader("Percentage Change in Average Annual Frequency (2010–2017 vs 2018–2025)")
+    subsection_title("Percentage Change in Average Annual Frequency (2010–2017 vs 2018–2025)")
     st.write(
         "This view quantifies how much each disaster type changed between decades. "
         "Wildfires and storms show the strongest increases, whereas droughts and extreme temperatures show slight declines, "
@@ -171,7 +172,7 @@ def render():
     st.plotly_chart(fig_change, use_container_width=True)
 
     # Stacked bar counts for the recent decade
-    st.subheader("Severe Weather Events by Type — Recent Decade (Counts)")
+    subsection_title("Severe Weather Events by Type — Recent Decade (Counts)")
     st.write(
         "This stacked bar chart summarizes annual event counts from 2018 to 2025. "
         "It shows that floods consistently contribute the largest share each year, "
@@ -197,7 +198,7 @@ def render():
     # Interpretation
     # Final Summary Section – Insight Summary
     st.markdown("---")
-    st.subheader("Insight Summary")
+    subsection_title("Insight Summary")
 
     # Compute key stats
     min_year, max_year = df["Start Year"].min(), df["Start Year"].max()
@@ -258,5 +259,4 @@ def render():
     )
 
     st.markdown("---")
-    subsection_title("Data Source")
-    st.caption("EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")
+    st.caption("Source: EM-DAT – Centre for Research on the Epidemiology of Disasters (CRED).")
