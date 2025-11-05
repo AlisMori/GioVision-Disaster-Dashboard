@@ -160,7 +160,7 @@ def render():
             <strong>Interpretation:</strong> Between 2010 and 2025, floods occurred about 
             <strong>{:.1f}×</strong> more often than earthquakes. However, each earthquake caused approximately 
             <strong>{:.1f}×</strong> more deaths and <strong>{:.1f}×</strong> times the human impact per event.
-            These findings <span style='color:#E74C3C; font-weight:bold;'>strongly support the hypothesis</span> — 
+            These findings <span style='color:#E74C3C; font-weight:bold;'>strongly support the hypothesis</span> - 
             earthquakes are less frequent but substantially more disastrous on a per-event basis.
         </div>
         """.format(freq_ratio, death_ratio, aff_ratio),

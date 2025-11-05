@@ -251,7 +251,7 @@ def render():
             <strong>{avg_yearly_growth * 100:.1f}%</strong>. The most frequent event type was 
             <strong>{most_common}</strong>, accounting for approximately 
             <strong>{most_common_share:.1f}%</strong> of all recorded events.  
-            These results <span style='color:#2E86C1; font-weight:bold;'>support the hypothesis</span> — 
+            These results <span style='color:#2E86C1; font-weight:bold;'>support the hypothesis</span> - 
             the data shows a clear upward trend in the frequency of severe weather events in the past decade.
         </div>
         """,
