@@ -172,7 +172,7 @@ def render():
     st.plotly_chart(fig_change, use_container_width=True)
 
     # Stacked bar counts for the recent decade
-    subsection_title("Severe Weather Events by Type — Recent Decade (Counts)")
+    subsection_title("Severe Weather Events by Type - Recent Decade (Counts)")
     st.write(
         "This stacked bar chart summarizes annual event counts from 2018 to 2025. "
         "It shows that floods consistently contribute the largest share each year, "
