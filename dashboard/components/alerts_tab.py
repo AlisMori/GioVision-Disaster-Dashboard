@@ -158,7 +158,6 @@ def render():
     # TAB 1: LIVE ALERTS
     # =========================================================
     with tab_live:
-        st.markdown("")
 
         col_main, col_filter = st.columns([4, 1], gap="large")
 
@@ -305,7 +304,8 @@ def render():
 
             # table
             subsection_title("List of live alerts")
-            story_context("While the map shows where alerts are happening, this table helps us track the most recent alerts in real time, supporting faster decision-making and guiding where resources or further investigation may be needed.")
+            story_context("While the map shows where alerts are happening, this table helps us track the alerts in real time, supporting faster decision-making and guiding where resources or further investigation may be needed.")
+            st.markdown("", unsafe_allow_html=True)
             if active_df.empty:
                 st.info("No active alerts at the current time.")
             else:
@@ -321,7 +321,6 @@ def render():
     # TAB 2: RECENT ALERTS
     # =========================================================
     with tab_recent:
-        st.markdown("")
 
         col_main, col_filter = st.columns([4, 1], gap="large")
 
@@ -482,6 +481,7 @@ def render():
             # table
             subsection_title("List of recent alerts")
             story_context("Recent GDACS records after filters. Use to inspect attributes and click through to source.")
+            st.markdown("", unsafe_allow_html=True)
             if recent_df.empty:
                 st.info("No recent alerts to list for the selected filters.")
             else:
@@ -496,7 +496,7 @@ def render():
     # =================================================
     # SECTION 2: Recent Alert Statistics
     # =================================================
-    st.markdown("")
+    st.markdown("---")
     section_title("Recent Alert Statistics")
     story_context(
         "Understanding recent alert patterns helps identify emerging hotspots and hazard trends. It turns raw alerts from GDACS into insight. These visuals below show where activity is building and which events demand closer attention."
@@ -671,5 +671,5 @@ def render():
                     )
                     st.plotly_chart(fig_type, use_container_width=True)
 
-        st.markdown("")
+        st.markdown("---")
         st.caption("Source: Global Disaster Alert and Coordination System")
