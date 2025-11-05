@@ -543,7 +543,7 @@ def render():
         )
         story_context(
             f"This chart reveals which disaster types are driving the highest alert scores in the current data. It helps spot dominant hazards and understand where risk levels are peaking "
-            f"— currently led by {top_type_dist}."
+            f", currently led by {top_type_dist}."
         )
         def _compact_country_label(s: str) -> str:
             if not isinstance(s, str) or not s.strip():

@@ -59,7 +59,7 @@ def render():
     subsection_title("Event Frequency Comparison")
     st.write(
         "Floods appear far more frequently than earthquakes in the EM-DAT records from 2010 to 2025. "
-        "This confirms the first part of the hypothesis — floods are more common."
+        "This confirms the first part of the hypothesis - floods are more common."
     )
 
     freq_df = df.groupby("Disaster Type").size().reset_index(name="Event Count")

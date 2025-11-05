@@ -38,7 +38,7 @@ def render():
         "- Climate Shift: From 2010 to 2025, the frequency of **severe weather events** (Floods, Storms, Droughts, Wildfires, "
         "and Extreme Temperatures) has increased over time, particularly in the **past few years (2018–2025)**.\n"
         "- Earthquakes VS Floods: Although **floods occur more often than earthquakes**, earthquakes have a **higher average human impact** per "
-        "event — measured in deaths, injuries, and total affected population."
+        "event, measured in deaths, injuries, and total affected population."
     )
 
     st.markdown("---")

@@ -249,7 +249,7 @@ def render():
     col1, col2 = st.columns([3, 1])
     with col1:
         # visual title as subsection
-        subsection_title(f"Top 10 Countries by People Affected — {TARGET_YEAR} — {chart_title_region}")
+        subsection_title(f"Top 10 Countries by People Affected: {TARGET_YEAR} - {chart_title_region}")
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
             "- Single-year view (2024) for clean comparison.\n"
@@ -327,7 +327,7 @@ def render():
                 <strong>Interpretation:</strong> In <strong>{chart_title_region}</strong>, disasters in {TARGET_YEAR}
                 affected about <strong>{total_affected_pool:,}</strong> people. When we look only at the 10 worst-hit
                 countries, LDCs appear <strong>{ldc_in_top10}</strong> times and take on about
-                <strong>{pct_val:,.1f}%</strong> of the reported impact. The small bar chart above confirms this visually —
+                <strong>{pct_val:,.1f}%</strong> of the reported impact. The small bar chart above confirms this visually,
                 the LDC slice of the top-10 impact is not marginal. This supports the trend that lower-income, lower-capacity
                 countries still carry a disproportionate share of human impact from disasters.
             </p>
@@ -337,7 +337,7 @@ def render():
 
     # ===== Right-side: list of LDCs =====
     with col2:
-        subsection_title(f"LDC Countries (2024) — {region}")
+        subsection_title(f"LDC Countries (2024) - {region}")
         st.markdown("<br>", unsafe_allow_html=True)
         ldc_df = build_ldc_dataframe_2024()
         if region == "All":
@@ -356,14 +356,14 @@ def render():
         """.format(items="<br/>".join(lines))
         st.markdown(html, unsafe_allow_html=True)
 
-        st.caption("Source: United Nations — List of Least Developed Countries (2024).")
+        st.caption("Source: United Nations - List of Least Developed Countries (2024).")
 
     # ===== References =====
     st.markdown("---")
     subsection_title("References")
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        "- United Nations — List of Least Developed Countries (as of December 2024)  \n"
+        "- United Nations - List of Least Developed Countries (as of December 2024)  \n"
         "  https://www.un.org/development/desa/dpad/least-developed-country-category.html"
     )
     st.markdown("---")

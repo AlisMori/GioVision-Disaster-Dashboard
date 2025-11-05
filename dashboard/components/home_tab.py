@@ -55,9 +55,9 @@ def render():
     subsection_title("Summary Overview")
     st.markdown(
         """
-        Welcome to the **GeoVision Disaster Dashboard (GDD)** — an interactive platform
+        Welcome to the **GeoVision Disaster Dashboard (GDD)**, an interactive platform
         that visualizes global natural disaster data from **NASA EONET**, **GDACS**, and **EM-DAT**.
-        This dashboard was developed by **Team GeoVision** for ICT305 — Data Visualisation and Simulation (Murdoch University, 2025).
+        This dashboard was developed by **Team GeoVision** for ICT305 - Data Visualisation and Simulation (Murdoch University, 2025).
 
         **What this dashboard does**
         - Provides real-time and historical views of natural disasters (floods, storms, earthquakes, wildfires, etc.).  
@@ -153,9 +153,9 @@ def render():
     subsection_title("Project & Team")
     st.markdown(
         """
-        **Team GeoVision** — Aleena Fatima, Fatima Faisal, Minal Haque, Alena Bobyleva, and Zhyldyz Kadyrovna Davydova  
-        Course: ICT305 — Data Visualisation and Simulation, Murdoch University (2025)  
-        Repo: `GioVision-Disaster-Dashboard` on GitHub.
+        **Team GeoVision Analytics** : Aleena Fatima, Fatima Faisal, Minal Haque, Alena Bobyleva, and Zhyldyz Kadyrovna Davydova  
+        **Course** : ICT305 Data Visualisation and Simulation, Murdoch University (2025)  
+        **Repo** : `GioVision-Disaster-Dashboard` on GitHub.
         """
     )
 
