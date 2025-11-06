@@ -14,9 +14,7 @@ import plotly.express as px
 import streamlit as st
 
 
-# ---------------------------------------------------------------------
 # SECTION HELPERS (consistent with app.py)
-# ---------------------------------------------------------------------
 def section_title(text: str):
     """Main section bar (registered by app.py capture)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
@@ -27,9 +25,7 @@ def subsection_title(text: str):
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
 
 
-# ---------------------------------------------------------------------
 # DATA LOADING
-# ---------------------------------------------------------------------
 @st.cache_data
 def load_emdat_data() -> pd.DataFrame:
     """Load cleaned EM-DAT dataset from common locations."""
@@ -58,9 +54,7 @@ def load_emdat_data() -> pd.DataFrame:
     return df
 
 
-# ---------------------------------------------------------------------
 # MAIN RENDER FUNCTION
-# ---------------------------------------------------------------------
 def render():
     """Render the full Impact of Natural Disasters analytics tab."""
     section_title("Overview")
@@ -76,30 +70,6 @@ def render():
     It offers both global insights and detailed country-level perspectives to better understand disaster effects and resilience patterns.
     """)
 
-    # Sticky filters
-    st.markdown(
-        """
-        <style>
-          [data-testid="column"]:has(.impact-filter-marker) > div {
-              position: sticky;
-              top: 90px;
-              width: 130%;
-              align-self: flex-start !important;
-              background-color: rgba(255,255,255,0.8);
-              padding: 1rem;
-              border-radius: 10px;
-              border: 1px solid #ddd;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-          }
-
-          .impact-filter-marker {
-              display: none;
-          }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     df = load_emdat_data()
 
     # Layout
@@ -107,8 +77,8 @@ def render():
 
     # ---------------- Filters ----------------
     with col_filter:
+        st.markdown('<div class="gv-filter-card">', unsafe_allow_html=True)
         subsection_title("Filters")
-        st.markdown('<div class="impact-filter-marker"></div>', unsafe_allow_html=True)
 
         years = sorted(df["Start Year"].unique())
         selected_years = st.slider("Select Year Range", int(min(years)), int(max(years)),
@@ -116,17 +86,32 @@ def render():
         selected_region = st.selectbox("Select Region", ["All"] + sorted(df["Region"].dropna().unique().tolist()))
         selected_metric = st.selectbox("Select Impact Metric", ["Total Affected", "Total Deaths", "No. Injured"])
 
-
     # Filtered data
     filtered = df[(df["Start Year"] >= selected_years[0]) & (df["Start Year"] <= selected_years[1])]
     if selected_region != "All":
         filtered = filtered[filtered["Region"] == selected_region]
     metric = selected_metric
 
+    # Helpers for consistent, filter-aware captions
+    def _region_label(r: str) -> str:
+        return "all regions" if (not r or r == "All") else r
+
+    def _years_label(yrange: tuple[int, int]) -> str:
+        a, b = int(yrange[0]), int(yrange[1])
+        return f"{a}–{b}" if a != b else f"{a}"
+
+    def _cap_context(metric: str, yrange: tuple[int, int], region: str) -> str:
+        return f"{metric} · {_years_label(yrange)} · {_region_label(region)}"
+
     # ---------------- Visuals ----------------
     with col_main:
         st.markdown("---")
         section_title(f"Global {metric} by Country")
+        st.caption(
+            f"Choropleth of **{_cap_context(selected_metric, selected_years, selected_region)}**. "
+            "Values are aggregated across all disaster types. "
+            "Use filters to change the period, region subset, and metric."
+        )
 
         # Choropleth map
         map_df = filtered.groupby("Country", as_index=False)[metric].sum()
@@ -146,6 +131,10 @@ def render():
         # Top 10 countries
         st.markdown("---")
         subsection_title(f"Top 10 Countries by {metric}")
+        st.caption(
+            f"Ranks countries by **{_cap_context(selected_metric, selected_years, selected_region)}**. "
+            "Bars show totals over the selected period."
+        )
         top10 = map_df.sort_values(metric, ascending=False).head(10)
         fig_bar = px.bar(top10, x=metric, y="Country", orientation="h", color=metric, color_continuous_scale="Reds")
         fig_bar.update_layout(yaxis=dict(autorange="reversed"))
@@ -154,6 +143,10 @@ def render():
         # Distribution by disaster type
         st.markdown("---")
         section_title(f"Distribution of {metric} by Disaster Type")
+        st.caption(
+            f"Proportional breakdown of **{_cap_context(selected_metric, selected_years, selected_region)}** "
+            "across disaster types. Use this to see which hazards contribute most within the filters."
+        )
         dist_df = filtered.groupby("Disaster Type", as_index=False)[metric].sum()
         fig_pie = px.pie(dist_df, names="Disaster Type", values=metric, hole=0.4)
         fig_pie.update_traces(textposition="inside", textinfo="percent+label")
@@ -162,6 +155,10 @@ def render():
         # Yearly trend
         st.markdown("---")
         section_title(f"Trend of {metric} Over Time")
+        st.caption(
+            f"Annual totals of **{_cap_context(selected_metric, selected_years, selected_region)}**. "
+            "Helps spot spikes and long-term movement over the chosen period."
+        )
         trend_df = filtered.groupby("Start Year", as_index=False)[metric].sum()
         fig_line = px.line(trend_df, x="Start Year", y=metric, markers=True)
         fig_line.update_traces(line_color="#FF8800")
@@ -175,6 +172,10 @@ def render():
 
         if mode == "Country":
             subsection_title(f"Top 20 Countries by {metric}")
+            st.caption(
+                f"Distribution of **{_cap_context(selected_metric, selected_years, selected_region)}** "
+                "across countries. Use to compare national impacts under the same filters."
+            )
             comp = filtered.groupby("Country", as_index=False)[metric].sum().sort_values(metric, ascending=False)
             top20 = comp.head(20)
             others = comp.iloc[20:][metric].sum()
@@ -185,6 +186,10 @@ def render():
 
         elif mode == "Disaster Type":
             subsection_title(f"{metric} by Disaster Type")
+            st.caption(
+                f"Distribution of **{_cap_context(selected_metric, selected_years, selected_region)}** "
+                "across disaster types. Highlights which hazards dominate under the filters."
+            )
             ddf = filtered.groupby("Disaster Type", as_index=False)[metric].sum()
             fig = px.bar(ddf, x="Disaster Type", y=metric, color="Disaster Type")
             fig.update_layout(xaxis_tickangle=-30, showlegend=False)
@@ -192,6 +197,11 @@ def render():
 
         else:
             subsection_title(f"{metric} Over Time")
+            st.caption(
+                f"{selected_metric} aggregated by year for **{_region_label(selected_region)}** "
+                f"over **{_years_label(selected_years)}**. Useful for comparing periods directly."
+            )
+
             tdf = filtered.groupby("Start Year", as_index=False)[metric].sum()
             fig = px.area(tdf, x="Start Year", y=metric, color_discrete_sequence=["#ff6600"])
             fig.update_traces(mode="lines+markers", fill="tozeroy")
@@ -202,7 +212,10 @@ def render():
         section_title("Country-Level Analysis")
         country = st.selectbox("Select Country", sorted(filtered["Country"].unique()))
         cdf = filtered[filtered["Country"] == country]
-
+        st.caption(
+            f"Detail for **{country}** showing **{_cap_context('Total Affected', selected_years, selected_region)}** "
+            "and top contributing disaster types. Metrics and trend respect the global filters."
+        )
         col1, col2 = st.columns(2)
         with col1:
             st.metric("Total Deaths", f"{int(cdf['Total Deaths'].sum()):,}")
@@ -221,22 +234,6 @@ def render():
         fig = px.bar(types.head(10), x="Total Affected", y="Disaster Type", orientation="h", color="Total Affected",
                      color_continuous_scale="Oranges")
         fig.update_layout(yaxis=dict(autorange="reversed"))
-        st.plotly_chart(fig, use_container_width=True)
-
-        # Correlation analysis
-        st.markdown("---")
-        section_title("Correlation Between Impact Metrics")
-        corr = filtered.groupby("Disaster Type", as_index=False)[
-            ["Total Deaths", "No. Injured", "Total Affected"]].sum()
-        matrix = corr.corr(numeric_only=True)
-        fig = px.imshow(matrix, text_auto=True, color_continuous_scale="RdBu_r")
-        st.plotly_chart(fig, use_container_width=True)
-
-        subsection_title("Scatter Comparison")
-        x_axis = st.selectbox("X-axis", ["Total Deaths", "No. Injured", "Total Affected"])
-        y_axis = st.selectbox("Y-axis", ["Total Deaths", "No. Injured", "Total Affected"], index=2)
-        fig = px.scatter(filtered, x=x_axis, y=y_axis, color="Disaster Type", size="Total Affected",
-                         hover_name="Country")
         st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("---")
