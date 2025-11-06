@@ -6,6 +6,7 @@ import re
 import unicodedata
 import html
 from contextlib import contextmanager
+from PIL import Image
 
 import streamlit as st
 
@@ -66,6 +67,14 @@ st.markdown(
 # ---------------------------------------------------------------------
 # NAV STRUCTURE
 # ---------------------------------------------------------------------
+
+# Open and resize the logo
+logo = Image.open("dashboard/assets/company_logo.png")
+logo = logo.resize((250, 40))  # width=150px, height=50px (adjust as needed)
+
+# Display in sidebar
+st.sidebar.image(logo)
+
 PAGES = {
     "Home": [],
     "Alerts": [],
