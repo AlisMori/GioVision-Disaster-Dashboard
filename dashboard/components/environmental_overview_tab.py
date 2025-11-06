@@ -126,7 +126,8 @@ def render():
     )
 
     # layout: spacer / content / filter
-    spacer_col, content_col, filter_col = st.columns([0.5, 6, 1.5])
+    content_col, filter_col = st.columns([6, 1.5])
+
 
     # ----------------------------------
     # FILTER COLUMN (RIGHT)
@@ -185,7 +186,7 @@ def render():
     if selected_disaster_type != "All Types":
         df_filtered = df_filtered[
             df_filtered["disaster_type_standardized"] == selected_disaster_type
-        ]
+            ]
     if selected_alert != "All Alerts":
         df_filtered = df_filtered[df_filtered["alert_level"] == selected_alert]
     if selected_country != "All Countries":
@@ -195,6 +196,18 @@ def render():
     # CONTENT COLUMN (CENTER)
     # ----------------------------------
     with content_col:
+        # Ensure left alignment for all content
+        st.markdown(
+            """
+            <style>
+            [data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {
+                text-align: left !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
         # Header
         section_title("Overview")
         st.markdown(
@@ -351,10 +364,10 @@ def render():
             current_month = datetime.now().month
             df_filtered_copy = df_filtered_copy[
                 df_filtered_copy["event_date_dt"].dt.year == current_year
-            ]
+                ]
             df_filtered_copy = df_filtered_copy[
                 df_filtered_copy["event_date_dt"].dt.month <= current_month
-            ]
+                ]
             df_filtered_copy["month_name"] = df_filtered_copy["event_date_dt"].dt.month_name()
             valid_months = [
                 "January",
@@ -405,7 +418,7 @@ def render():
             )
             df_bubble = df_filtered[
                 df_filtered["disaster_type_standardized"] == bubble_disaster_type
-            ].copy()
+                ].copy()
         else:
             df_bubble = pd.DataFrame()
 
@@ -435,7 +448,7 @@ def render():
                 .reset_index(name="event_count")
             )
             bubble_data["severity_value"] = (
-                bubble_data["event_count"] * metric_info["multiplier"]
+                    bubble_data["event_count"] * metric_info["multiplier"]
             )
             bubble_data["severity_display"] = bubble_data["severity_value"].apply(
                 lambda x: f"Severity: {int(x):,} {metric_info['unit']}"
@@ -449,7 +462,7 @@ def render():
                     marker=dict(
                         size=bubble_data["severity_value"],
                         sizemode="area",
-                        sizeref=2.0 * max(bubble_data["severity_value"]) / (40.0**2),
+                        sizeref=2.0 * max(bubble_data["severity_value"]) / (40.0 ** 2),
                         color="#59B3A9",
                         line=dict(width=1, color="white"),
                     ),
