@@ -133,7 +133,7 @@ def render():
         subsection_title(f"Top 10 Countries by {metric}")
         st.caption(
             f"Ranks countries by **{_cap_context(selected_metric, selected_years, selected_region)}**. "
-            "Bars show totals over the selected period; ties are broken by alphabetical order."
+            "Bars show totals over the selected period."
         )
         top10 = map_df.sort_values(metric, ascending=False).head(10)
         fig_bar = px.bar(top10, x=metric, y="Country", orientation="h", color=metric, color_continuous_scale="Reds")
