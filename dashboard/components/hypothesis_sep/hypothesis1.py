@@ -284,79 +284,53 @@ def render():
         )
         st.plotly_chart(dist_fig, use_container_width=True)
 
-        # ===== Insight Summary (KPI style like your example) =====
-        subsection_title("Insight Summary")
-        st.markdown("<br>", unsafe_allow_html=True)
+    # ===== Insight Summary (KPI style like st.metric) =====
+    subsection_title("Insight Summary")
+    st.markdown("<br>", unsafe_allow_html=True)
 
-        k1, k2, k3 = st.columns(3)
+    k1, k2, k3 = st.columns(3)
 
-        # keep numbers tidy
-        pct_val = (top10_ldc_share / top10_affected_total * 100.0) if top10_affected_total else 0.0
+    # keep numbers tidy
+    pct_val = (top10_ldc_share / top10_affected_total * 100.0) if top10_affected_total else 0.0
 
-        with k1:
-            st.markdown(
-                f"""
-                <div style="font-size:0.8rem; color:#4b5563;">Total Affected in Selected Pool</div>
-                <div style="font-size:2.1rem; font-weight:600; line-height:1; color:#1f2937;">{total_affected_pool:,}</div>
-                <div style="color:#059669; font-size:0.78rem; margin-top:4px;">↑ Reported burden in {chart_title_region}</div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with k2:
-            st.markdown(
-                f"""
-                <div style="font-size:0.8rem; color:#4b5563;">LDC Share in Top 10</div>
-                <div style="font-size:2.1rem; font-weight:600; line-height:1; color:#1f2937;">{pct_val:,.1f}%</div>
-                <div style="color:#059669; font-size:0.78rem; margin-top:4px;">↑ Portion borne by LDCs</div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with k3:
-            st.markdown(
-                f"""
-                <div style="font-size:0.8rem; color:#4b5563;">LDCs in Top 10</div>
-                <div style="font-size:2.1rem; font-weight:600; line-height:1; color:#1f2937;">{ldc_in_top10}/10</div>
-                <div style="color:#059669; font-size:0.78rem; margin-top:4px;">↑ How often LDCs appear</div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        st.markdown(
-            f"""
-            <p style="margin-top:16px; font-size:0.9rem; line-height:1.6;">
-                <strong>Interpretation:</strong> In <strong>{chart_title_region}</strong>, disasters in {TARGET_YEAR}
-                affected about <strong>{total_affected_pool:,}</strong> people. When we look only at the 10 worst-hit
-                countries, LDCs appear <strong>{ldc_in_top10}</strong> times and take on about
-                <strong>{pct_val:,.1f}%</strong> of the reported impact. The small bar chart above confirms this visually,
-                the LDC slice of the top-10 impact is not marginal. This supports the trend that lower-income, lower-capacity
-                countries still carry a disproportionate share of human impact from disasters.
-            </p>
-            """,
-            unsafe_allow_html=True,
+    with k1:
+        st.metric(
+            label="Total Affected in Selected Pool",
+            value=f"{total_affected_pool:,}",
+            delta=f"Reported burden in {chart_title_region}",
+            help=f"People affected by disasters in {TARGET_YEAR} for the current selection.",
         )
 
-    # ===== Right-side: list of LDCs =====
-    with col2:
-        subsection_title(f"LDC Countries (2024) - {region}")
-        st.markdown("<br>", unsafe_allow_html=True)
-        ldc_df = build_ldc_dataframe_2024()
-        if region == "All":
-            list_df = ldc_df.sort_values(["Region", "Name"])
-        else:
-            list_df = ldc_df[ldc_df["Region"] == region].sort_values("Name")
+    with k2:
+        st.metric(
+            label="LDC Share in Top 10",
+            value=f"{pct_val:,.1f}%",
+            delta="Portion borne by LDCs",
+            help="Share of impact taken by countries on the UN LDC list within the 10 worst-hit.",
+        )
 
-        lines = [f"• {row.Name}" for row in list_df.itertuples(index=False)]
-        if not lines:
-            lines = ["—"]
+    with k3:
+        st.metric(
+            label="LDCs in Top 10",
+            value=f"{ldc_in_top10}/10",
+            delta="How often LDCs appear",
+            help="Count of LDCs inside the 10 worst-hit countries for this region/year.",
+        )
 
-        html = """
-        <div style="max-height: 420px; overflow-y: auto; border: 1px solid #e6e6e6; padding: 8px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4;">
-            {items}
-        </div>
-        """.format(items="<br/>".join(lines))
-        st.markdown(html, unsafe_allow_html=True)
-
-        st.caption("Source: United Nations - List of Least Developed Countries (2024).")
+    # keep your interpretation text
+    st.markdown(
+        f"""
+        <p style="margin-top:16px; font-size:0.9rem; line-height:1.6;">
+            <strong>Interpretation:</strong> In <strong>{chart_title_region}</strong>, disasters in {TARGET_YEAR}
+            affected about <strong>{total_affected_pool:,}</strong> people. When we look only at the 10 worst-hit
+            countries, LDCs appear <strong>{ldc_in_top10}</strong> times and take on about
+            <strong>{pct_val:,.1f}%</strong> of the reported impact. The small bar chart above confirms this visually,
+            the LDC slice of the top-10 impact is not marginal. This supports the trend that lower-income, lower-capacity
+            countries still carry a disproportionate share of human impact from disasters.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # ===== References =====
     st.markdown("---")

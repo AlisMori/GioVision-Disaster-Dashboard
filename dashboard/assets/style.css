@@ -217,3 +217,112 @@ body, html {
   border: 1px solid #e5e7eb;
   box-shadow: 0 4px 8px rgba(15,23,42,0.05);
 }
+
+
+/* ===== DARK MODE ADAPTATION ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e2e8f0;
+    --muted: #94a3b8;
+    --white: #0f172a;         /* base surface in dark */
+    --accent: #60a5fa;
+    --accent-soft: rgba(96,165,250,0.15);
+    --border: rgba(148,163,184,0.28);
+  }
+
+  html, body {
+    background: #0f172a !important;
+    color: var(--ink) !important;
+  }
+
+  /* main streamlit container */
+  main .block-container > div {
+    background: #0f172a !important;
+  }
+
+  /* banner stays bright enough */
+  .gv-banner{
+    background: linear-gradient(90deg, #020617 0%, #0f172a 45%, #1d4ed8 100%);
+    box-shadow: 0 16px 36px rgba(0,0,0,.35);
+  }
+  .gv-banner__subtitle{
+    color: rgba(226,232,240,.75);
+  }
+
+  /* top menu */
+  .gv-menu{
+    background: rgba(2,6,23,0.65);
+    border-bottom: 1px solid rgba(148,163,184,0.28);
+    backdrop-filter: blur(6px);
+  }
+  .gv-m-link{
+    color: #e2e8f0 !important;
+  }
+  .gv-m-item:hover > .gv-m-link{
+    background: rgba(96,165,250,0.10);
+  }
+  .gv-m-item--active > .gv-m-link{
+    background: transparent;
+    border-bottom: 2px solid var(--accent);
+    color: #fff !important;
+  }
+
+  /* sidebar links */
+  .gv-side-link{
+    color: #e2e8f0 !important;
+  }
+  .gv-side-item:hover > .gv-side-link{
+    background: rgba(96,165,250,0.10);
+    border-left: 2px solid rgba(96,165,250,.4);
+  }
+  .gv-side-item--active > .gv-side-link{
+    background: rgba(15,23,42,0.45);
+    border-left: 2px solid var(--accent);
+  }
+
+  /* titles */
+  .gv-page-title{
+    color: #fff;
+    border-bottom: 1px solid rgba(148,163,184,0.18);
+  }
+  .gv-section-title{
+    color: #bfdbfe;
+  }
+  .gv-subsection-title{
+    color: #93c5fd;
+  }
+  .gv-context{
+    color: #e2e8f0;
+  }
+
+  /* sticky right panel / filter */
+  .sticky-filter {
+    background-color: rgba(15,23,42,0.9);
+    border: 1px solid rgba(148,163,184,0.25);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  }
+
+  /* footer */
+  .gv-separator{
+    background: rgba(148,163,184,0.15);
+  }
+  .gv-footer{
+    color: #94a3b8;
+  }
+
+  /* pills */
+  .gv-pill{
+    background: rgba(96,165,250,0.12);
+    border: 1px solid rgba(96,165,250,0.35);
+    color: #e2e8f0;
+  }
+
+  /* prevent OS dark mode from making text invisible inside generic streamlit blocks */
+  [data-testid="stMarkdownContainer"],
+  .stText,
+  .stAlert,
+  .stDataFrame,
+  .stTable {
+    color: #e2e8f0 !important;
+  }
+}
