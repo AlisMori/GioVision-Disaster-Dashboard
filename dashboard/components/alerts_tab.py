@@ -148,7 +148,7 @@ def render():
     df_recent_base = df.copy()
 
     # 🔹 common section ABOVE tabs
-    section_title("Current Alerts & Locations")
+    section_title("Alerts & Locations")
     story_context("Switch between live GDACS alerts and the latest recent alerts for short-term review.")
 
     # tabs
@@ -362,7 +362,8 @@ def render():
 
             subsection_title("Alerts map")
             story_context(
-                "Map shows all recent alerts for the selected filters. Active events are layered on top. Useful for short term review and debriefs."
+                "Map shows all recent alerts from GDACS the selected filters. Useful for short-term review and debriefs. "
+                "Note that some or all of the showing alerts might have been ended, this visual is only subject for short-term review."
             )
             st.markdown("", unsafe_allow_html=True)
 
@@ -501,36 +502,8 @@ def render():
     story_context(
         "Understanding recent alert patterns helps identify emerging hotspots and hazard trends. It turns raw alerts from GDACS into insight. These visuals below show where activity is building and which events demand closer attention."
     )
-    col_main, col_filter = st.columns([4, 1], gap="large")
 
-    with col_filter:
-        st.markdown('<div class="gv-filter-card">', unsafe_allow_html=True)
-        subsection_title("Filters")
-
-        alert_options = ["All"] + sorted(
-            df_recent_base["Alert Level"].dropna().str.capitalize().unique().tolist()
-        )
-        alert_filter = st.selectbox("Alert Level", alert_options, key="recent_alert_level")
-        if alert_filter == "All":
-            df_alert = df_recent_base.copy()
-        else:
-            df_alert = df_recent_base[
-                df_recent_base["Alert Level"].str.lower() == alert_filter.lower()
-                ].copy()
-
-        countries = sorted(df_alert["Country"].dropna().unique().tolist())
-        country_choice = st.selectbox(
-            "Country",
-            options=["All countries"] + countries,
-            index=0,
-            key="recent_country"
-        )
-        if country_choice == "All countries":
-            recent_df = df_alert.copy()
-        else:
-            recent_df = df_alert[df_alert["Country"] == country_choice].copy()
-
-        st.markdown("</div>", unsafe_allow_html=True)
+    col_main = st.container()
 
     with col_main:
         table_df = df.copy()
@@ -545,6 +518,7 @@ def render():
             f"This chart reveals which disaster types are driving the highest alert scores in the current data. It helps spot dominant hazards and understand where risk levels are peaking "
             f", currently led by {top_type_dist}."
         )
+
         def _compact_country_label(s: str) -> str:
             if not isinstance(s, str) or not s.strip():
                 return "-"
