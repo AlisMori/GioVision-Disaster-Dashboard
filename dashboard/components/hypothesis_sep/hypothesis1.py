@@ -17,11 +17,9 @@ def section_title(text: str):
     """Main section bar (registered by app.py capture)."""
     st.markdown(f'<div class="gv-section-title">{text}</div>', unsafe_allow_html=True)
 
-
 def subsection_title(text: str):
     """Smaller subsection bar."""
     st.markdown(f'<div class="gv-subsection-title">{text}</div>', unsafe_allow_html=True)
-
 
 def story_context(text: str):
     """One-line context/caption above a visual."""
@@ -76,7 +74,6 @@ def _read_csv_first_match(paths) -> Optional[pd.DataFrame]:
 def normalize_country_name(name: str) -> str:
     if not isinstance(name, str):
         return ""
-    # remove trailing footnote numerals
     name = re.sub(r"[0-9¹²³⁴⁵⁶⁷⁸⁹]+$", "", str(name).strip())
     name = name.replace("’", "'").replace("–", "-").replace("—", "-")
     name = " ".join(name.split())
@@ -140,7 +137,6 @@ def render():
     _anchor("sec-h1-overview")
     section_title("Impact Gap")
 
-    # high-level context about trends
     st.markdown(
         "Disaster impacts do not fall evenly across countries. In many regions, the countries that appear most often in "
         "the **worst-affected list** are those on the UN’s 2024 list of Least Developed Countries (LDCs). This view shows "
@@ -148,20 +144,17 @@ def render():
     )
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ===== Load data =====
     df = load_emdat()
     if df is None:
         st.warning("Could not load EM-DAT file. Please check data location.")
         return
 
-    # ===== Make sure we have Total Affected =====
     if "Total Affected" not in df.columns:
         df["No. Injured"]  = df.get("No. Injured", 0).fillna(0)
         df["No. Affected"] = df.get("No. Affected", 0).fillna(0)
         df["No. Homeless"] = df.get("No. Homeless", 0).fillna(0)
         df["Total Affected"] = df["No. Injured"] + df["No. Affected"] + df["No. Homeless"]
 
-    # ===== Year derivation =====
     if "Event Date" in df.columns:
         df["Event Date"] = pd.to_datetime(df["Event Date"], errors="coerce")
         df["Year"] = df["Event Date"].dt.year
@@ -176,23 +169,17 @@ def render():
         return
     df["Country_norm"] = df["Country"].astype(str).apply(normalize_country_name)
 
-    # ===== Filter to a single year (2024) =====
     df_2024 = df[df["Year"] == TARGET_YEAR].copy()
     if df_2024.empty:
         st.warning("No records found in EM-DAT for the year 2024.")
         return
 
-    # ===== LDC reference =====
     ldc_df = build_ldc_dataframe_2024()
     ldc_set_all = set(ldc_df["Country_norm"])
-
-    # ===== Region mapping from EM-DAT (if present) =====
     macro_map = _country_to_macro_region(df_2024)
 
-    # ===== Region selector =====
     region = st.selectbox("Select Region", REGIONS, index=0)
 
-    # build the pool for chart
     if region == "All":
         chart_pool = df_2024.copy()
         chart_title_region = "World"
@@ -205,24 +192,20 @@ def render():
             chart_pool = df_2024[df_2024["Country_norm"].isin(region_ldc_set)].copy()
         chart_title_region = region
 
-    # aggregate top 10
     agg = _aggregate_topn(chart_pool, n=10)
     agg["Is LDC"] = agg["Country_norm"].apply(lambda c: "LDC" if c in ldc_set_all else "Non-LDC")
 
-    # metrics
     total_affected_pool = int(chart_pool["Total Affected"].sum()) if not chart_pool.empty else 0
     top10_affected_total = int(agg["Total Affected"].sum()) if not agg.empty else 0
     top10_ldc_share = float(agg.loc[agg["Is LDC"] == "LDC", "Total Affected"].sum()) if not agg.empty else 0.0
     ldc_in_top10 = int((agg["Is LDC"] == "LDC").sum()) if not agg.empty else 0
 
-    # for second visual: LDC vs Non-LDC distribution inside top 10
     non_ldc_share = max(top10_affected_total - top10_ldc_share, 0)
     dist_df = pd.DataFrame({
         "Group": ["LDC", "Non-LDC"],
         "Total Affected": [top10_ldc_share, non_ldc_share],
     })
 
-    # ===== Chart =====
     color_map = {
         "Non-LDC": "rgba(180,205,230,0.9)",
         "LDC": "rgba(30,92,150,1)",
@@ -245,10 +228,8 @@ def render():
         template="plotly_white",
     )
 
-    # ===== Layout with right panel =====
     col1, col2 = st.columns([3, 1])
     with col1:
-        # visual title as subsection
         subsection_title(f"Top 10 Countries by People Affected: {TARGET_YEAR} - {chart_title_region}")
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
@@ -259,7 +240,6 @@ def render():
         st.markdown("<br>", unsafe_allow_html=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        # ===== NEW: Distribution of affected people (LDC vs Non-LDC) =====
         subsection_title("Distribution in Top 10: LDC vs Non-LDC")
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
@@ -284,13 +264,52 @@ def render():
         )
         st.plotly_chart(dist_fig, use_container_width=True)
 
+    # ===== Right-side: list of LDCs =====
+    with col2:
+        subsection_title(f"LDC Countries (2024) - {region}")
+        st.markdown("<br>", unsafe_allow_html=True)
+        ldc_df_full = build_ldc_dataframe_2024()
+        if region == "All":
+            list_df = ldc_df_full.sort_values(["Region", "Name"])
+        else:
+            list_df = ldc_df_full[ldc_df_full["Region"] == region].sort_values("Name")
+
+        lines = [f"• {row.Name}" for row in list_df.itertuples(index=False)]
+        if not lines:
+            lines = ["—"]
+
+        html = """
+        <div class="ldc-list-box" style="max-height: 420px; overflow-y: auto; border: 1px solid #e6e6e6; padding: 8px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4;">
+            {items}
+        </div>
+        """.format(items="<br/>".join(lines))
+        st.markdown(html, unsafe_allow_html=True)
+
+        # 🌙 dark mode fix for list visibility
+        st.markdown(
+            """
+            <style>
+            @media (prefers-color-scheme: dark){
+              .ldc-list-box {
+                background: rgba(15,23,42,0.9) !important;
+                border: 1px solid rgba(148,163,184,0.35) !important;
+                color: #e2e8f0 !important;
+              }
+              .ldc-list-box a { color: #e2e8f0 !important; }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.caption("Source: United Nations - List of Least Developed Countries (2024).")
+
     # ===== Insight Summary (KPI style like st.metric) =====
     subsection_title("Insight Summary")
     st.markdown("<br>", unsafe_allow_html=True)
 
     k1, k2, k3 = st.columns(3)
 
-    # keep numbers tidy
     pct_val = (top10_ldc_share / top10_affected_total * 100.0) if top10_affected_total else 0.0
 
     with k1:
@@ -317,7 +336,6 @@ def render():
             help="Count of LDCs inside the 10 worst-hit countries for this region/year.",
         )
 
-    # keep your interpretation text
     st.markdown(
         f"""
         <p style="margin-top:16px; font-size:0.9rem; line-height:1.6;">
